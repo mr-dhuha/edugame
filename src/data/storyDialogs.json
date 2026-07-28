@@ -1,0 +1,136 @@
+{
+  "characters": {
+    "meranti": {
+      "name": "Profesor Meranti",
+      "role": "Peneliti Senior",
+      "avatar": "👩‍🔬"
+    },
+    "neo": {
+      "name": "Asisten Neo",
+      "role": "AI Pendamping",
+      "avatar": "🤖"
+    }
+  },
+  "dialogs": {
+    "1": {
+      "intro": [
+        {
+          "speaker": "meranti",
+          "text": "Selamat datang di Laboratorium Kimia Pesisir Meranti! Aku Profesor Meranti."
+        },
+        {
+          "speaker": "meranti",
+          "text": "Sistem kita baru saja mengalami gangguan besar. Label bahan dan catatan reaksi terhapus dari database."
+        },
+        {
+          "speaker": "neo",
+          "text": "Saya Neo, asisten AI-mu. Bersama-sama, kita akan memulihkan data yang hilang."
+        },
+        {
+          "speaker": "meranti",
+          "text": "Ada 9 ruang yang harus dibuka. Setiap ruang memerlukan bukti - apakah reaksi melibatkan ion dalam air, perpindahan proton, atau pasangan elektron."
+        },
+        {
+          "speaker": "neo",
+          "text": "Aku akan memberimu petunjuk jika kamu butuh bantuan. Siap?"
+        }
+      ],
+      "outro": [
+        {
+          "speaker": "meranti",
+          "text": "Luar biasa! Kamu berhasil membuka semua ruang di Episode 1."
+        },
+        {
+          "speaker": "neo",
+          "text": "Data teori asam-basa telah dipulihkan. Sekarang waktunya refleksi sebelum melanjutkan."
+        }
+      ]
+    },
+    "2": {
+      "intro": [
+        {
+          "speaker": "meranti",
+          "text": "Teori asam-basa sudah dipulihkan, tapi masalah baru muncul."
+        },
+        {
+          "speaker": "meranti",
+          "text": "Sembilan sampel simulasi kehilangan label konsentrasinya. Sensor pH kita perlu dikalibrasi ulang."
+        },
+        {
+          "speaker": "neo",
+          "text": "Kamu perlu menghitung pH dan pOH, membaca data sensor, dan membandingkan tingkat keasaman."
+        },
+        {
+          "speaker": "meranti",
+          "text": "Hati-hati dengan operasi logaritma - banyak yang terjebak di situ!"
+        }
+      ],
+      "outro": [
+        {
+          "speaker": "meranti",
+          "text": "Semua sampel berhasil dilabeli ulang. Kerja bagus!"
+        },
+        {
+          "speaker": "neo",
+          "text": "Sensor pH sudah terkalibrasi. Saatnya refleksi tentang skala logaritmik."
+        }
+      ]
+    },
+    "3": {
+      "intro": [
+        {
+          "speaker": "meranti",
+          "text": "Ruang analisis lingkungan masih terkunci. Kita perlu mengidentifikasi sifat larutan dari warna indikator."
+        },
+        {
+          "speaker": "neo",
+          "text": "Ingat - satu indikator hanya memberi rentang pH, bukan nilai tunggal. Gunakan beberapa indikator untuk menyempitkan kesimpulan."
+        },
+        {
+          "speaker": "meranti",
+          "text": "Ada indikator sintetis seperti lakmus dan fenolftalein, dan juga alami seperti bunga telang dari daerah kita."
+        }
+      ],
+      "outro": [
+        {
+          "speaker": "meranti",
+          "text": "Ruang analisis berhasil dibuka! Kamu sudah seperti detektif warna sungguhan."
+        },
+        {
+          "speaker": "neo",
+          "text": "Kemampuan mengintegrasikan bukti dari beberapa indikator sangat penting. Refleksikan pengalamanmu."
+        }
+      ]
+    },
+    "4": {
+      "intro": [
+        {
+          "speaker": "meranti",
+          "text": "Ini misi terakhir - dan yang paling menantang. Ruang penelitian utama berisi sampel asam organik."
+        },
+        {
+          "speaker": "meranti",
+          "text": "Kamu harus merancang titrasi: pilih alat, tentukan indikator, hitung stoikiometri, dan evaluasi kualitas data."
+        },
+        {
+          "speaker": "neo",
+          "text": "Perhatikan prosedur pembilasan alat dan konsistensi data pengulangan. Kesalahan kecil bisa berdampak besar!"
+        }
+      ],
+      "outro": [
+        {
+          "speaker": "meranti",
+          "text": "Misi penyelamatan berhasil! Semua data laboratorium telah dipulihkan."
+        },
+        {
+          "speaker": "neo",
+          "text": "Kamu telah menunjukkan kemampuan analisis yang luar biasa. Refleksikan perjalananmu."
+        },
+        {
+          "speaker": "meranti",
+          "text": "Terima kasih, asisten. Laboratorium Pesisir Meranti bangga memilikimu."
+        }
+      ]
+    }
+  }
+}

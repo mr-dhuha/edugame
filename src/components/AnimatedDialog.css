@@ -1,0 +1,90 @@
+.anim-dialog-container {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: flex-end;
+  flex: 1;
+  width: 100%;
+  position: relative;
+  cursor: pointer;
+  padding-bottom: 20px;
+}
+
+.anim-avatar-container {
+  width: 150px;
+  height: 150px;
+  margin-bottom: -20px; /* Overlap with dialog box */
+  z-index: 2;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.9);
+  border: 3px solid #2a6f8f;
+  overflow: hidden;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.2);
+  display: flex;
+  align-items: flex-end;
+  justify-content: center;
+  animation: slideIn 0.3s ease-out;
+}
+
+@keyframes slideIn {
+  from { transform: translateY(20px); opacity: 0; }
+  to { transform: translateY(0); opacity: 1; }
+}
+
+.anim-avatar {
+  width: 120%;
+  object-fit: contain;
+  margin-bottom: -10px;
+}
+
+.anim-dialog-box {
+  width: 100%;
+  background: rgba(255, 255, 255, 0.95);
+  border: 2px solid #2a6f8f;
+  border-radius: 16px;
+  padding: 32px 24px 24px;
+  box-shadow: 0 8px 24px rgba(0,0,0,0.15);
+  position: relative;
+  z-index: 1;
+  min-height: 140px;
+}
+
+.anim-speaker-name {
+  font-family: 'Cinzel Decorative', serif;
+  color: #2a6f8f;
+  font-size: 1.1rem;
+  margin: 0 0 12px 0;
+  text-transform: uppercase;
+  letter-spacing: 1px;
+}
+
+.anim-text {
+  font-family: 'EB Garamond', serif;
+  font-size: 1.2rem;
+  line-height: 1.6;
+  color: #3b2a1a;
+  margin: 0;
+}
+
+.anim-next-indicator {
+  position: absolute;
+  bottom: 12px;
+  right: 20px;
+  font-family: 'Inter', sans-serif;
+  font-size: 0.8rem;
+  color: #2a6f8f;
+  font-weight: 700;
+  text-transform: uppercase;
+  animation: fadeInOut 1s infinite;
+}
+
+.anim-blink {
+  display: inline-block;
+  margin-right: 4px;
+}
+
+@keyframes fadeInOut {
+  0% { opacity: 0.3; }
+  50% { opacity: 1; }
+  100% { opacity: 0.3; }
+}

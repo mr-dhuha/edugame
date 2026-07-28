@@ -1,0 +1,174 @@
+{
+  "mastery": {
+    "initialValue": 50,
+    "minValue": 0,
+    "maxValue": 100,
+    "weights": {
+      "correctAnswer": 8,
+      "wrongAnswer": -5,
+      "confidenceHighCorrect": 3,
+      "confidenceLowCorrect": 1,
+      "confidenceHighWrong": -5,
+      "confidenceLowWrong": -2,
+      "confidenceMediumCorrect": 2,
+      "confidenceMediumWrong": -3,
+      "fastAnswer": 2,
+      "fastThreshold": 0.5,
+      "hintPenalty": [
+        -1,
+        -2,
+        -3
+      ],
+      "misconceptionPenalty": -3
+    }
+  },
+  "xp": {
+    "basePoints": {
+      "Easy": 100,
+      "Medium": 150,
+      "Hard": 200
+    },
+    "bonus": {
+      "fastAnswer": 20,
+      "noHint": 25,
+      "highConfidenceCorrect": 10,
+      "perfectEpisode": 50
+    }
+  },
+  "gate": {
+    "questionsPerGate": 3,
+    "thresholds": {
+      "remediation": {
+        "maxCorrect": 1,
+        "action": "REMEDIATION"
+      },
+      "conditionalPass": {
+        "exactCorrect": 2,
+        "action": "CONDITIONAL_PASS"
+      },
+      "directPass": {
+        "exactCorrect": 3,
+        "action": "DIRECT_PASS"
+      }
+    }
+  },
+  "adaptiveQuadrant": {
+    "correctHighConfidence": {
+      "action": "CONTINUE",
+      "label": "Lanjut normal"
+    },
+    "correctLowConfidence": {
+      "action": "REINFORCE_CONFIDENCE",
+      "label": "Penguatan keyakinan"
+    },
+    "correctMediumConfidence": {
+      "action": "CONTINUE",
+      "label": "Lanjut dengan ringkasan"
+    },
+    "wrongHighConfidence": {
+      "action": "MISCONCEPTION_INTERVENTION",
+      "label": "Intervensi miskonsepsi"
+    },
+    "wrongLowConfidence": {
+      "action": "SHOW_HINT",
+      "label": "Tampilkan petunjuk"
+    },
+    "wrongMediumConfidence": {
+      "action": "SHOW_HINT",
+      "label": "Tampilkan petunjuk dan konsep"
+    }
+  },
+  "badges": [
+    {
+      "id": "penjelajah-teori",
+      "name": "Analis Teori",
+      "description": "Selesaikan Episode 1",
+      "condition": {
+        "type": "episodeCompleted",
+        "episode": 1
+      },
+      "icon": "Microscope"
+    },
+    {
+      "id": "spesialis-ph",
+      "name": "Spesialis pH",
+      "description": "Selesaikan Episode 2 dengan sempurna",
+      "condition": {
+        "type": "episodePerfect",
+        "episode": 2
+      },
+      "icon": "FlaskConical"
+    },
+    {
+      "id": "detektif-indikator",
+      "name": "Pakar Indikator",
+      "description": "Selesaikan Episode 3 dengan sempurna",
+      "condition": {
+        "type": "episodePerfect",
+        "episode": 3
+      },
+      "icon": "Palette"
+    },
+    {
+      "id": "ahli-titrasi",
+      "name": "Ahli Titrasi",
+      "description": "Selesaikan Episode 4 dengan sempurna",
+      "condition": {
+        "type": "episodePerfect",
+        "episode": 4
+      },
+      "icon": "Beaker"
+    },
+    {
+      "id": "tanpa-petunjuk",
+      "name": "Mandiri Akurat",
+      "description": "Selesaikan satu episode tanpa menggunakan hint",
+      "condition": {
+        "type": "noHints"
+      },
+      "icon": "Brain"
+    },
+    {
+      "id": "jawaban-cepat",
+      "name": "Respon Sigap",
+      "description": "Selesaikan satu episode di bawah 50% waktu total",
+      "condition": {
+        "type": "fastEpisode"
+      },
+      "icon": "Zap"
+    },
+    {
+      "id": "master-keyakinan",
+      "name": "Akurasi Presisi",
+      "description": "80%+ jawaban benar dengan keyakinan tinggi",
+      "condition": {
+        "type": "calibration",
+        "threshold": 0.8
+      },
+      "icon": "Gem"
+    }
+  ],
+  "difficultyOrder": [
+    "Easy",
+    "Medium",
+    "Hard"
+  ],
+  "confidenceLevels": [
+    "rendah",
+    "sedang",
+    "tinggi"
+  ],
+  "reflection": {
+    "minWords": 10,
+    "keyPointThresholds": {
+      "3": 4,
+      "2": 2,
+      "1": 1,
+      "0": 0
+    }
+  },
+  "progression": {
+    "unlockAllEpisodes": true,
+    "strictGateProgression": false
+  }
+}

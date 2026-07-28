@@ -1,0 +1,42 @@
+[
+  {
+    "id": 1,
+    "title": "Jejak Teori Asam-Basa",
+    "subtitle": "Episode 1",
+    "storyline": "Hari pertamamu sebagai asisten peneliti di Laboratorium Kimia Pesisir Meranti berubah menjadi misi penyelamatan data. Gangguan sistem menghapus label bahan dan catatan reaksi. Untuk membuka sembilan ruang, kamu harus menentukan teori asam-basa berdasarkan bukti partikel, perpindahan proton, dan perpindahan pasangan elektron.",
+    "concepts": ["Arrhenius", "Bronsted", "Lewis"],
+    "unlockCondition": null,
+    "questionsPerDifficulty": 3,
+    "difficulties": ["Easy", "Medium", "Hard"]
+  },
+  {
+    "id": 2,
+    "title": "Operasi Derajat Keasaman",
+    "subtitle": "Episode 2",
+    "storyline": "Setelah teori asam-basa dipulihkan, sembilan sampel simulasi kehilangan label konsentrasinya. Kamu harus menghitung pH dan pOH, membaca data sensor, serta membandingkan tingkat keasaman. Sistem akan memberikan dukungan tambahan ketika terdeteksi kesalahan logaritma, pengenceran, atau pencampuran.",
+    "concepts": ["pH"],
+    "unlockCondition": { "episodeCompleted": 1 },
+    "questionsPerDifficulty": 3,
+    "difficulties": ["Easy", "Medium", "Hard"]
+  },
+  {
+    "id": 3,
+    "title": "Detektif Warna Laboratorium",
+    "subtitle": "Episode 3",
+    "storyline": "Akses ke ruang analisis lingkungan masih terkunci. Kamu harus mengidentifikasi sifat larutan berdasarkan perubahan warna indikator sintetis dan alami. Ketelitian penting karena satu indikator umumnya hanya memberikan rentang pH, bukan nilai tunggal.",
+    "concepts": ["Indikator"],
+    "unlockCondition": { "episodeCompleted": 2 },
+    "questionsPerDifficulty": 3,
+    "difficulties": ["Easy", "Medium", "Hard"]
+  },
+  {
+    "id": 4,
+    "title": "Misi Penyelamat: Operasi Titrasi",
+    "subtitle": "Episode 4",
+    "storyline": "Ruang penelitian utama menyimpan sampel asam organik model untuk simulasi pengujian produk pangan lokal. Kamu harus merancang dan mengevaluasi titrasi melalui pemilihan alat, indikator, perhitungan stoikiometri, pemeriksaan prosedur, dan evaluasi kualitas data.",
+    "concepts": ["Titrasi"],
+    "unlockCondition": { "episodeCompleted": 3 },
+    "questionsPerDifficulty": 3,
+    "difficulties": ["Easy", "Medium", "Hard"]
+  }
+]

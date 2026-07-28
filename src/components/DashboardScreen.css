@@ -1,0 +1,440 @@
+@import url('https://fonts.googleapis.com/css2?family=Cinzel+Decorative:wght@700;900&family=EB+Garamond:ital,wght@0,400;0,600;1,400&family=Inter:wght@400;600&display=swap');
+
+/* DashboardScreen.css */
+
+:root {
+  --parchment: #f4e4c1;
+  --ink: #3b2a1a;
+  --ink-light: #6b5a4a;
+  --ocean: #2a6f8f;
+  --gold: #c9a84c;
+  --gold-bright: #f0c040;
+}
+
+* {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+.map-screen {
+  width: 100%;
+  min-height: 100vh;
+  min-height: 100dvh;
+  background: var(--ocean);
+  position: relative;
+  overflow-x: hidden;
+  overflow-y: auto;
+  font-family: 'EB Garamond', serif;
+  display: flex;
+  flex-direction: column;
+}
+
+/* Background image filling the screen */
+.map-bg {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  z-index: 0;
+}
+
+/* Clouds floating */
+.cloud {
+  position: absolute;
+  z-index: 1;
+  opacity: 0.8;
+  animation: float 20s infinite linear;
+}
+
+.c1 {
+  top: 10%;
+  left: -20%;
+  width: 150px;
+  animation-duration: 25s;
+}
+
+.c2 {
+  top: 30%;
+  right: -20%;
+  width: 200px;
+  animation-duration: 30s;
+  animation-direction: reverse;
+}
+
+.c3 {
+  top: 60%;
+  left: -10%;
+  width: 100px;
+  animation-duration: 20s;
+}
+
+.c4 {
+  top: 85%;
+  right: -15%;
+  width: 120px;
+  animation-duration: 22s;
+  animation-direction: reverse;
+}
+
+@keyframes float {
+  from {
+    transform: translateX(0);
+  }
+
+  to {
+    transform: translateX(120vw);
+  }
+}
+
+/* Logo */
+.logo-wrap {
+  position: relative;
+  z-index: 2;
+  text-align: center;
+  padding: 20px 16px 10px;
+}
+
+.logo {
+  max-width: 280px;
+  width: 80%;
+  filter: drop-shadow(0 4px 6px rgba(0, 0, 0, 0.3));
+}
+
+/* Stats */
+.compact-stats {
+  position: relative;
+  display: flex;
+  flex-direction: row;
+  justify-content: center;
+  gap: 12px;
+  z-index: 50;
+  margin-top: -10px;
+  margin-bottom: 10px;
+}
+
+.compact-stat-chip {
+  background: rgba(255, 255, 255, 0.9);
+  padding: 4px 10px;
+  border-radius: 12px;
+  border: 1px solid rgba(59, 42, 26, 0.2);
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+  backdrop-filter: blur(4px);
+}
+
+.stat-chip {
+  background: rgba(255, 255, 255, 0.85);
+  padding: 6px 12px;
+  border-radius: 20px;
+  border: 1px solid rgba(59, 42, 26, 0.2);
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+}
+
+.stat-label {
+  font-family: 'Inter', sans-serif;
+  font-size: 0.65rem;
+  text-transform: uppercase;
+  color: var(--ink-light);
+  font-weight: 600;
+}
+
+.stat-val {
+  font-weight: 700;
+  color: var(--ink);
+  font-size: 0.85rem;
+}
+
+/* Island Map Area (Relative for absolute positioning) */
+.island-map {
+  position: relative;
+  z-index: 2;
+  flex: 1;
+  width: 90%;
+  max-width: 900px;
+  /* Constrain width much larger for wide spreading */
+  margin: 0 auto;
+}
+
+/* Bridge Lines */
+.bridge {
+  position: absolute;
+  height: 24px;
+  z-index: 2;
+  object-fit: cover;
+  transform-origin: center;
+  filter: drop-shadow(0 4px 4px rgba(0, 0, 0, 0.3));
+}
+
+.bridge.dimmed {
+  filter: drop-shadow(0 4px 4px rgba(0, 0, 0, 0.3)) grayscale(100%) opacity(0.5);
+}
+
+/* Island Nodes */
+.island-node {
+  position: absolute;
+  transform: translate(-50%, -50%);
+  z-index: 3;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  cursor: pointer;
+}
+
+.island-node.locked {
+  filter: grayscale(80%) brightness(0.8);
+  cursor: default;
+}
+
+.island-img {
+  filter: drop-shadow(0 10px 10px rgba(0, 0, 0, 0.3));
+  transition: transform 0.2s ease;
+}
+
+.island-node:not(.locked):active .island-img {
+  transform: scale(0.95);
+}
+
+.island-deco {
+  position: absolute;
+  z-index: 4;
+  pointer-events: none;
+}
+
+/* Level Indicator Dot */
+.level-dot-wrap {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  width: 40px;
+  height: 40px;
+  z-index: 5;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.dot-img {
+  position: absolute;
+  width: 100%;
+  height: 100%;
+  object-fit: contain;
+  filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.5));
+}
+
+.dot-num {
+  position: relative;
+  z-index: 1;
+  font-family: 'Cinzel Decorative', serif;
+  font-size: 1.1rem;
+  font-weight: 700;
+  color: #fff;
+  text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.8);
+}
+
+.lock-icon {
+  width: 32px;
+  height: 32px;
+  object-fit: contain;
+  filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.5));
+}
+
+/* Stars */
+.stars-img {
+  position: absolute;
+  bottom: -15px;
+  width: 60px;
+  z-index: 6;
+  filter: drop-shadow(0 2px 4px rgba(0, 0, 0, 0.5));
+}
+
+/* Title Label */
+.island-title {
+  margin-top: 10px;
+  font-family: 'Cinzel Decorative', serif;
+  font-size: 0.8rem;
+  color: var(--ink);
+  background: rgba(244, 228, 193, 0.9);
+  padding: 6px 12px;
+  border-radius: 12px;
+  border: 1px solid rgba(59, 42, 26, 0.3);
+  text-align: center;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.2);
+  max-width: 220px;
+  z-index: 7;
+  line-height: 1.2;
+}
+
+/* Modal (Previously Drawer) */
+.drawer-bg {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.6);
+  z-index: 10;
+  animation: fadeIn 0.2s ease;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+
+  to {
+    opacity: 1;
+  }
+}
+
+.drawer {
+  position: relative;
+  background: url('/img/panel_wood.png') center top / cover no-repeat;
+  border-radius: 24px;
+  padding: 30px 24px 40px;
+  box-shadow: 0 8px 32px rgba(0, 0, 0, 0.5);
+  animation: popIn 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+  color: var(--ink);
+  max-height: 85vh;
+  width: 90%;
+  max-width: 400px;
+  overflow-y: auto;
+}
+
+@keyframes popIn {
+  from {
+    transform: scale(0.8);
+    opacity: 0;
+  }
+
+  to {
+    transform: scale(1);
+    opacity: 1;
+  }
+}
+
+.drawer-pill {
+  width: 48px;
+  height: 6px;
+  border-radius: 3px;
+  background: rgba(0, 0, 0, 0.2);
+  margin: 0 auto 16px;
+}
+
+.drawer-header-img {
+  width: 100%;
+  max-width: 200px;
+  display: block;
+  margin: 0 auto 16px;
+  filter: drop-shadow(0 4px 6px rgba(0, 0, 0, 0.3));
+}
+
+.drawer-title {
+  font-family: 'Cinzel Decorative', serif;
+  font-size: 1.2rem;
+  color: var(--ocean);
+  text-align: center;
+  margin-bottom: 12px;
+  font-weight: 900;
+}
+
+.drawer-brief {
+  font-family: 'EB Garamond', serif;
+  color: var(--ink);
+  line-height: 1.5;
+  font-size: 1rem;
+  margin-bottom: 16px;
+  text-align: center;
+  font-weight: 600;
+}
+
+.drawer-tags {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+  justify-content: center;
+  margin-bottom: 24px;
+}
+
+.drawer-tag {
+  font-family: 'Inter', sans-serif;
+  font-size: 0.7rem;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  padding: 4px 12px;
+  background: rgba(42, 111, 143, 0.15);
+  color: var(--ocean);
+  border-radius: 4px;
+  border: 1px solid rgba(42, 111, 143, 0.3);
+  font-weight: 700;
+}
+
+.drawer-btn {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 100%;
+  padding: 16px;
+  font-family: 'Cinzel Decorative', serif;
+  font-size: 1.1rem;
+  font-weight: 700;
+  letter-spacing: 1px;
+  border: none;
+  border-radius: 12px;
+  cursor: pointer;
+  box-shadow: 0 4px 8px rgba(0, 0, 0, 0.3);
+  transition: all 0.2s ease;
+}
+
+.drawer-btn.go {
+  background: var(--ocean);
+  color: #f4e4c1;
+  border: 2px solid rgba(255, 255, 255, 0.2);
+}
+
+.drawer-btn.go:active {
+  background: #1d5a75;
+}
+
+.drawer-btn.revisit {
+  background: rgba(0, 0, 0, 0.2);
+  color: #f4e4c1;
+  border: 2px solid rgba(255, 255, 255, 0.3);
+}
+
+/* Certificate Area */
+.cert-area {
+  position: relative;
+  z-index: 2;
+  margin: 0 16px 40px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.win-banner {
+  width: 100%;
+  max-width: 300px;
+  margin-bottom: -20px;
+  z-index: 3;
+  filter: drop-shadow(0 4px 8px rgba(0, 0, 0, 0.4));
+}
+
+@media (min-width: 768px) {
+  .island-node {
+    transform: scale(1.1) translate(-50%, -50%);
+    /* slightly scale up on desktop */
+  }
+
+  .drawer {
+    max-width: 480px;
+  }
+}

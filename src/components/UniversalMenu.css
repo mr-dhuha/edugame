@@ -1,0 +1,122 @@
+.um-toggle-btn {
+  position: fixed;
+  top: 16px;
+  right: 16px;
+  width: 48px;
+  height: 48px;
+  background: rgba(255, 255, 255, 0.85);
+  border: 2px solid #2a6f8f;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  cursor: pointer;
+  z-index: 1000;
+  box-shadow: 0 4px 8px rgba(0,0,0,0.2);
+  transition: all 0.2s ease;
+}
+
+.um-toggle-btn:hover {
+  transform: scale(1.05);
+  background: #fff;
+}
+
+.um-overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background: rgba(0,0,0,0.7);
+  backdrop-filter: blur(4px);
+  z-index: 1001;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  animation: fadeIn 0.2s ease;
+}
+
+.um-modal {
+  background: #f4e4c1;
+  width: 90%;
+  max-width: 400px;
+  border-radius: 20px;
+  padding: 30px 24px;
+  box-shadow: 0 10px 30px rgba(0,0,0,0.5);
+  border: 2px solid #2a6f8f;
+  animation: popIn 0.3s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+}
+
+.um-title {
+  font-family: 'Cinzel Decorative', serif;
+  font-size: 1.5rem;
+  color: #2a6f8f;
+  text-align: center;
+  margin-bottom: 24px;
+  border-bottom: 1px solid rgba(42,111,143,0.2);
+  padding-bottom: 12px;
+}
+
+.um-btn-group {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.um-btn {
+  width: 100%;
+  padding: 14px;
+  font-family: 'Inter', sans-serif;
+  font-size: 1rem;
+  font-weight: 700;
+  text-transform: uppercase;
+  border-radius: 12px;
+  border: 1.5px solid #2a6f8f;
+  background: rgba(255,255,255,0.7);
+  color: #2a6f8f;
+  cursor: pointer;
+  transition: all 0.2s ease;
+}
+
+.um-btn:hover {
+  background: rgba(42,111,143,0.1);
+}
+
+.um-btn.primary {
+  background: #2a6f8f;
+  color: #f4e4c1;
+}
+
+.um-btn.primary:hover {
+  background: #1d5a75;
+}
+
+.um-btn.warning {
+  border-color: #d35400;
+  color: #d35400;
+}
+
+.um-btn.warning:hover {
+  background: rgba(211, 84, 0, 0.1);
+}
+
+.um-btn.danger {
+  border-color: #c0392b;
+  color: #c0392b;
+}
+
+.um-btn.danger:hover {
+  background: rgba(192, 57, 43, 0.1);
+  color: #fff;
+  border-color: transparent;
+}
+
+.um-stats-content {
+  font-family: 'EB Garamond', serif;
+  font-size: 1.1rem;
+  color: #3b2a1a;
+}
+
+.um-stats-content p {
+  margin-bottom: 8px;
+}

@@ -1,0 +1,50 @@
+[
+  {
+    "episode": 1,
+    "title": "Jejak Teori Asam-Basa",
+    "prompt": "Jelaskan mengapa teori Lewis memiliki cakupan lebih luas daripada teori Arrhenius, tetapi teori Arrhenius tetap berguna untuk menjelaskan larutan berair. Tuliskan 2-3 kalimat dan sertakan bukti konsep.",
+    "keyPoints": ["Lewis", "donor", "akseptor", "pasangan elektron", "Arrhenius", "H₃O⁺", "OH⁻", "air", "BF₃", "NH₃", "HCl", "NaOH", "cakupan", "luas"],
+    "rubric": {
+      "3": "Konsep benar, bukti jelas, dan hubungan dengan data/misi kuat.",
+      "2": "Konsep utama benar tetapi bukti/hubungan belum lengkap.",
+      "1": "Jawaban umum/deskriptif atau memuat sebagian miskonsepsi.",
+      "0": "Kosong atau tidak relevan."
+    }
+  },
+  {
+    "episode": 2,
+    "title": "Operasi Derajat Keasaman",
+    "prompt": "Mengapa selisih satu satuan pH menunjukkan perubahan konsentrasi H₃O⁺ sebesar sepuluh kali, bukan satu kali? Tuliskan 2-3 kalimat dan sertakan bukti matematis atau konsep.",
+    "keyPoints": ["pH", "log", "logaritma", "H₃O⁺", "sepuluh", "10", "basis", "pangkat", "skala", "konsentrasi"],
+    "rubric": {
+      "3": "Konsep benar, bukti jelas, dan hubungan dengan data/misi kuat.",
+      "2": "Konsep utama benar tetapi bukti/hubungan belum lengkap.",
+      "1": "Jawaban umum/deskriptif atau memuat sebagian miskonsepsi.",
+      "0": "Kosong atau tidak relevan."
+    }
+  },
+  {
+    "episode": 3,
+    "title": "Detektif Warna Laboratorium",
+    "prompt": "Mengapa penggunaan beberapa indikator dapat menghasilkan kesimpulan rentang pH yang lebih kuat daripada hanya satu indikator? Tuliskan 2-3 kalimat dan sertakan bukti dari konsep trayek indikator.",
+    "keyPoints": ["indikator", "trayek", "rentang", "irisan", "batas", "pH", "konsisten", "bukti", "warna", "perubahan"],
+    "rubric": {
+      "3": "Konsep benar, bukti jelas, dan hubungan dengan data/misi kuat.",
+      "2": "Konsep utama benar tetapi bukti/hubungan belum lengkap.",
+      "1": "Jawaban umum/deskriptif atau memuat sebagian miskonsepsi.",
+      "0": "Kosong atau tidak relevan."
+    }
+  },
+  {
+    "episode": 4,
+    "title": "Misi Penyelamat: Operasi Titrasi",
+    "prompt": "Jelaskan perbedaan presisi dan akurasi serta bagaimana data pencilan dapat memengaruhi kesimpulan titrasi. Tuliskan 2-3 kalimat dan sertakan bukti dari data pengulangan.",
+    "keyPoints": ["presisi", "akurasi", "pencilan", "rata-rata", "pengulangan", "data", "kesalahan", "teliti", "dekat", "benar"],
+    "rubric": {
+      "3": "Konsep benar, bukti jelas, dan hubungan dengan data/misi kuat.",
+      "2": "Konsep utama benar tetapi bukti/hubungan belum lengkap.",
+      "1": "Jawaban umum/deskriptif atau memuat sebagian miskonsepsi.",
+      "0": "Kosong atau tidak relevan."
+    }
+  }
+]
