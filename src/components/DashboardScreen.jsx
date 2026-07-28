@@ -10,10 +10,10 @@ import './DashboardScreen.css';
   Using a variety of assets from level_map
 */
 const NODES = [
-  { x: 50, y: 78, island: '/img/island 1.png', w: 160, deco: '/img/coconut1.png', decoW: '25%', decoX: '65%', decoY: '42%' },
-  { x: 28, y: 58, island: '/img/island 2.png', w: 140, deco: '/img/house.png', decoW: '40%', decoX: '50%', decoY: '38%' },
-  { x: 72, y: 38, island: '/img/island 3.png', w: 130, deco: '/img/stones 1.png', decoW: '45%', decoX: '55%', decoY: '38%' },
-  { x: 50, y: 18, island: '/img/island 4.png', w: 150, deco: '/img/cave.png', decoW: '55%', decoX: '50%', decoY: '38%' },
+  { x: 50, y: 78, island: '/img/island 1.png', w: 160, deco: '/img/coconut1.png', decoW: '25%', decoX: '65%', decoY: '42%', labelPos: 'bottom' },
+  { x: 28, y: 58, island: '/img/island 2.png', w: 140, deco: '/img/house.png', decoW: '40%', decoX: '50%', decoY: '38%', labelPos: 'right' },
+  { x: 72, y: 38, island: '/img/island 3.png', w: 130, deco: '/img/stones 1.png', decoW: '45%', decoX: '55%', decoY: '38%', labelPos: 'left' },
+  { x: 50, y: 18, island: '/img/island 4.png', w: 150, deco: '/img/cave.png', decoW: '55%', decoX: '50%', decoY: '38%', labelPos: 'top' },
 ];
 
 const BRIDGES = [
@@ -154,9 +154,11 @@ export default function DashboardScreen({ playerState }) {
                   className="level-title-banner"
                   style={{
                     position: 'absolute',
-                    top: '-45px',
-                    left: '50%',
-                    transform: 'translateX(-50%)',
+                    ...(node.labelPos === 'bottom' ? { bottom: '-65px', left: '50%', transform: 'translateX(-50%)' } :
+                        node.labelPos === 'top' ? { top: '-55px', left: '50%', transform: 'translateX(-50%)' } :
+                        node.labelPos === 'left' ? { right: '110%', top: '50%', transform: 'translateY(-50%)' } :
+                        { left: '110%', top: '50%', transform: 'translateY(-50%)' }
+                    ),
                     background: '#eaddc5',
                     padding: '6px 12px',
                     borderRadius: '8px',

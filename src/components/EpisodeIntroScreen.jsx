@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { Target, PlayCircle } from 'lucide-react';
 import { fsm, STATES } from '../core/FSMEngine';
 import { eventBus, EVENTS } from '../core/EventBus';
 import episodesData from '../data/episodes.json';
@@ -39,7 +40,7 @@ export default function EpisodeIntroScreen({ context }) {
         {/* Misi Card */}
         <div style={{ backgroundColor: 'rgba(255,255,255,0.85)', padding: '20px', border: '1.5px solid rgba(59,42,26,0.15)', borderRadius: '16px', marginBottom: '24px', boxShadow: '0 4px 12px rgba(0,0,0,0.1)', maxHeight: '35vh', overflowY: 'auto' }}>
           <strong style={{ fontFamily: "'Inter', sans-serif", fontSize: '0.9rem', color: '#2a6f8f', textTransform: 'uppercase', letterSpacing: '1px', display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '12px', borderBottom: '1px solid rgba(42,111,143,0.2)', paddingBottom: '8px' }}>
-            <img src="/img/icon_target.png" alt="" style={{ width: '18px' }} />
+            <Target size={18} />
             Misi Utama
           </strong>
           <p style={{ fontSize: '1.05rem', lineHeight: '1.6', color: '#3b2a1a', margin: 0, textAlign: 'justify' }}>{episode.storyline}</p>
@@ -55,7 +56,7 @@ export default function EpisodeIntroScreen({ context }) {
                 onClick={handleStart}
                 style={{ width: '100%', padding: '16px', backgroundColor: '#2a6f8f', color: '#f4e4c1', border: 'none', borderRadius: '12px', cursor: 'pointer', fontFamily: "'Cinzel Decorative', serif", fontSize: '1.1rem', fontWeight: '700', letterSpacing: '1px', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px', boxShadow: '0 4px 12px rgba(42,111,143,0.3)', transition: 'all 0.2s ease' }}
               >
-                <img src="/img/btn_circle_play.png" alt="" style={{ width: '24px' }} />
+                <PlayCircle size={24} />
                 Mulai Evaluasi Data
               </button>
             </div>

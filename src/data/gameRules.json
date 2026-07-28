@@ -168,7 +168,7 @@
     }
   },
   "progression": {
-    "unlockAllEpisodes": true,
+    "unlockAllEpisodes": false,
     "strictGateProgression": false
   }
 }

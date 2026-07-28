@@ -65,9 +65,9 @@ export default function CertificateGenerator({ playerState, gameRules }) {
       <div style={{ display: 'flex', gap: '20px', marginBottom: '20px', width: '100%', maxWidth: '1123px', justifyContent: 'center' }}>
         <button
           onClick={() => fsm.transition(STATES.DASHBOARD)}
-          style={{ padding: '12px 24px', fontSize: '1rem', background: '#dc3545', color: '#fff', border: 'none', borderRadius: '8px', cursor: 'pointer', fontWeight: 'bold', boxShadow: '0 4px 6px rgba(0,0,0,0.1)' }}
+          style={{ padding: '12px 24px', fontSize: '1rem', background: '#dc3545', color: '#fff', border: 'none', borderRadius: '8px', cursor: 'pointer', fontWeight: 'bold', boxShadow: '0 4px 6px rgba(0,0,0,0.1)', display: 'flex', alignItems: 'center', gap: '8px' }}
         >
-          ⬅ Kembali ke Peta
+          <LucideIcons.ArrowLeft size={20} /> Kembali ke Peta
         </button>
         <button
           onClick={generatePDF}
