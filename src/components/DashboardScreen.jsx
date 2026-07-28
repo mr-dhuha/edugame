@@ -10,10 +10,10 @@ import './DashboardScreen.css';
   Using a variety of assets from level_map
 */
 const NODES = [
-  { x: 50, y: 86, island: '/img/island 1.png', w: 160, deco: '/img/coconut1.png', decoW: '25%', decoX: '65%', decoY: '42%' },
-  { x: 28, y: 62, island: '/img/island 2.png', w: 140, deco: '/img/house.png', decoW: '40%', decoX: '50%', decoY: '38%' },
+  { x: 50, y: 78, island: '/img/island 1.png', w: 160, deco: '/img/coconut1.png', decoW: '25%', decoX: '65%', decoY: '42%' },
+  { x: 28, y: 58, island: '/img/island 2.png', w: 140, deco: '/img/house.png', decoW: '40%', decoX: '50%', decoY: '38%' },
   { x: 72, y: 38, island: '/img/island 3.png', w: 130, deco: '/img/stones 1.png', decoW: '45%', decoX: '55%', decoY: '38%' },
-  { x: 50, y: 14, island: '/img/island 4.png', w: 150, deco: '/img/cave.png', decoW: '55%', decoX: '50%', decoY: '38%' },
+  { x: 50, y: 18, island: '/img/island 4.png', w: 150, deco: '/img/cave.png', decoW: '55%', decoX: '50%', decoY: '38%' },
 ];
 
 const BRIDGES = [
@@ -149,20 +149,34 @@ export default function DashboardScreen({ playerState }) {
                 )}
               </div>
 
-              {/* Episode title */}
-              <div className="island-title" style={{
-                background: '#f4e4c1',
-                position: 'absolute',
-                bottom: '95%',
-                left: '50%',
-                transform: 'translateX(-50%)',
-                width: 'max-content',
-                maxWidth: '180px',
-                margin: 0,
-                zIndex: 10
-              }}>
-                {ep.title}
-              </div>
+                {/* Level Title Banner */}
+                <div
+                  className="level-title-banner"
+                  style={{
+                    position: 'absolute',
+                    top: '-45px',
+                    left: '50%',
+                    transform: 'translateX(-50%)',
+                    background: '#eaddc5',
+                    padding: '6px 12px',
+                    borderRadius: '8px',
+                    border: '2px solid #d4c4a8',
+                    color: '#3b2a1a',
+                    fontFamily: "'Cinzel Decorative', serif",
+                    fontSize: '0.8rem',
+                    fontWeight: 'bold',
+                    boxShadow: '0 4px 6px rgba(0,0,0,0.3)',
+                    textAlign: 'center',
+                    whiteSpace: 'normal',
+                    width: 'max-content',
+                    maxWidth: '140px',
+                    lineHeight: '1.2',
+                    zIndex: 10,
+                    pointerEvents: 'none'
+                  }}
+                >
+                  {ep.title}
+                </div>
             </div>
           );
         })}

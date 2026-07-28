@@ -49,7 +49,7 @@ export default function FeedbackScreen({ context }) {
           </strong>
         </div>
 
-        <div style={{ fontFamily: "'Inter', sans-serif", fontWeight: '500', fontSize: '1.05rem', lineHeight: '1.6', color: '#3b2a1a', flex: 1 }}>
+        <div style={{ fontFamily: "'Cambria Math', 'Times New Roman', serif", fontWeight: '500', fontSize: '1.15rem', lineHeight: '1.8', color: '#3b2a1a', flex: 1, letterSpacing: '0.3px' }}>
           {adaptiveAction.feedback}
           <img 
             src={`/img/hints/${adaptiveAction.questionId}.jpg`} 
