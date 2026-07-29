@@ -92,11 +92,17 @@ export function evaluateGate(gateResults) {
     message = 'Belum cukup kuat. Mari kita perkuat pemahamanmu dulu sebelum lanjut.';
   }
 
+  const mistakes = gateResults
+    .filter((r) => !r.isCorrect)
+    .map((r) => r.concept || r.selectedOption || 'Konsep terkait')
+    .join(', ');
+
   return {
     action,
     correctCount,
     totalQuestions,
     message,
+    mistakes,
     shouldAwardBonus: action === 'DIRECT_PASS',
     needsRemediation: action === 'REMEDIATION',
   };
@@ -160,7 +166,9 @@ export function isEpisodeUnlocked(episodeId, completedEpisodes, episodesData) {
   if (!episode.unlockCondition) return true;
 
   const { episodeCompleted } = episode.unlockCondition;
-  return completedEpisodes.has(episodeCompleted);
+  return completedEpisodes.has(episodeCompleted) || 
+         completedEpisodes.has(String(episodeCompleted)) || 
+         completedEpisodes.has(Number(episodeCompleted));
 }
 
 /**

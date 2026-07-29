@@ -51,6 +51,11 @@ export class PlayerModel {
   }
 
   exportState() {
+    // Auto-fix null episode ids from previous FSMEngine bug
+    if (this.state.completedEpisodes.has(null)) {
+      this.state.completedEpisodes.delete(null);
+      this.state.completedEpisodes.add(1);
+    }
     return {
       ...this.state,
       completedEpisodes: new Set(this.state.completedEpisodes),

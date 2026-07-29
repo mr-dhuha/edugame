@@ -58,7 +58,7 @@ export class FSMEngine {
         this.context.gateResult = payload.gateResult;
         break;
       case STATES.EPISODE_COMPLETE:
-        this.context.currentEpisodeId = null;
+        // Do not set currentEpisodeId to null, EpisodeCompleteScreen needs it!
         this.context.currentDifficulty = null;
         this.context.gateQuestionCount = 0;
         break;

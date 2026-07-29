@@ -78,16 +78,45 @@ export default function DashboardScreen({ playerState }) {
                   top: `${node.y}%`, 
                   transform: 'translate(-50%, -50%)',
                   cursor: (unlocked || completed) ? 'pointer' : 'not-allowed',
-                  zIndex: 10,
-                  width: '60%',     // Area klik lebar 60% dari gambar
-                  height: '15%',    // Area klik tinggi 15% dari gambar
+                  zIndex: 100 - i, // Semakin awal (episode 1 di bawah), z-index semakin besar agar berada di depan
+                  width: '50%',     // Area klik dioptimalkan (50% lebar gambar)
+                  height: '12%',    // Tinggi hitbox diperkecil sedikit menjadi 12% agar pas
                   borderRadius: '30px',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
                   // Uncomment line di bawah untuk debugging area hitbox:
                   // background: 'rgba(255, 0, 0, 0.2)', border: '2px solid red'
                 }}
                 onClick={() => (unlocked || completed) && setSelectedEp(ep)}
               >
-                {/* Tidak ada elemen HTML berlebih. Klik langsung di area gambar pulau. */}
+                <div 
+                  style={{
+                    backgroundColor: (unlocked || completed) ? '#2a6f8f' : '#6b5a4a',
+                    color: '#f4e4c1',
+                    fontFamily: "'Cinzel Decorative', serif",
+                    fontSize: '0.85rem',
+                    fontWeight: 'bold',
+                    padding: '6px 14px',
+                    borderRadius: '20px',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    boxShadow: '0 4px 8px rgba(0,0,0,0.4)',
+                    border: '2px solid #f4e4c1',
+                    opacity: (unlocked || completed) ? 1 : 0.8,
+                    textShadow: '1px 1px 2px rgba(0,0,0,0.5)',
+                    transition: 'transform 0.2s ease',
+                  }}
+                  onMouseEnter={(e) => {
+                    if (unlocked || completed) e.currentTarget.style.transform = 'scale(1.1)';
+                  }}
+                  onMouseLeave={(e) => {
+                    if (unlocked || completed) e.currentTarget.style.transform = 'scale(1)';
+                  }}
+                >
+                  {(unlocked || completed) ? 'MAINKAN' : 'TERKUNCI'}
+                </div>
               </div>
             );
           })}
@@ -98,7 +127,9 @@ export default function DashboardScreen({ playerState }) {
       {selectedEp && (
         <div className="drawer-bg" onClick={() => setSelectedEp(null)}>
           <div className="drawer" onClick={(e) => e.stopPropagation()}>
-            <img src="/img/header_level.png" alt="" className="drawer-header-img" />
+            <div className="drawer-header-css">
+              LEVEL SELECT
+            </div>
             <h2 className="drawer-title">{selectedEp.subtitle}: {selectedEp.title}</h2>
             <p className="drawer-brief">{selectedEp.storyline}</p>
             <div className="drawer-tags">
