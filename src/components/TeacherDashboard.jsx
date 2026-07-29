@@ -1,8 +1,9 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { CheckCircle, Trophy } from 'lucide-react';
+import { CheckCircle, Trophy, LogOut, Users, BarChart3, MessageSquare, Download } from 'lucide-react';
 import { fetchTeacherMetrics, approveStudent } from '../core/TeacherEngine';
 import misconceptionsData from '../data/misconceptions.json';
+import './TeacherDashboard.css';
 
 export default function TeacherDashboard() {
   const navigate = useNavigate();
@@ -52,197 +53,259 @@ export default function TeacherDashboard() {
     }
   };
 
-  if (loading) return <div style={{ padding: '50px', textAlign: 'center' }}>Memuat data kelas...</div>;
-  if (!metrics) return <div>Gagal memuat data.</div>;
+  const exportToCSV = () => {
+    if (!metrics || !metrics.students) return;
+    const headers = ['Nama', 'NIS', 'Episode Selesai', 'Mastery', 'Badge'];
+    const rows = metrics.students.map(s => [
+      s.name, 
+      s.nis, 
+      s.completedEpisodes, 
+      Math.round(s.currentMastery), 
+      s.badges
+    ]);
+    
+    const csvContent = [
+      headers.join(','),
+      ...rows.map(row => row.join(','))
+    ].join('\n');
+
+    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.href = url;
+    link.setAttribute('download', 'data_siswa_chemquest.csv');
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+  };
+
+  if (loading) return <div className="td-empty-state" style={{ margin: '40px auto', maxWidth: '600px' }}>Memuat data kelas analitik...</div>;
+  if (!metrics) return <div className="td-empty-state" style={{ margin: '40px auto', maxWidth: '600px' }}>Gagal memuat data.</div>;
+
+  // Sorting misconceptions by count (descending)
+  const sortedMisconceptions = [...metrics.misconceptions].sort((a, b) => b.count - a.count);
 
   return (
-    <div style={{ fontFamily: 'sans-serif', maxWidth: '1000px', margin: '0 auto', padding: '20px' }}>
+    <div className="td-container">
       {/* HEADER */}
-      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', borderBottom: '2px solid #2c3e50', paddingBottom: '15px', marginBottom: '20px' }}>
-        <h1 style={{ color: '#2c3e50', margin: 0 }}>ChemQuest Teacher Dashboard</h1>
-        <button onClick={handleLogout} style={{ padding: '8px 15px', backgroundColor: '#dc3545', color: 'white', border: 'none', borderRadius: '4px', cursor: 'pointer' }}>
-          Logout
+      <header className="td-header">
+        <h1 className="td-title"><BarChart3 size={24} color="#2563eb" /> ChemQuest Analytics Dashboard</h1>
+        <button className="td-btn-logout" onClick={handleLogout}>
+          <LogOut size={18} /> Logout
         </button>
-      </div>
+      </header>
 
-      <div style={{ display: 'flex', gap: '20px' }}>
+      <div className="td-layout">
         {/* SIDEBAR */}
-        <div style={{ width: '200px', display: 'flex', flexDirection: 'column', gap: '10px' }}>
+        <aside className="td-sidebar">
           <button 
+            className={`td-nav-btn ${activeTab === 'overview' ? 'active' : ''}`}
             onClick={() => setActiveTab('overview')}
-            style={{ padding: '10px', textAlign: 'left', backgroundColor: activeTab === 'overview' ? '#007bff' : '#f8f9fa', color: activeTab === 'overview' ? 'white' : 'black', border: '1px solid #dee2e6', borderRadius: '4px', cursor: 'pointer' }}
           >
-            📊 Overview
+            <BarChart3 size={18} /> Overview
           </button>
           <button 
+            className={`td-nav-btn ${activeTab === 'students' ? 'active' : ''}`}
             onClick={() => setActiveTab('students')}
-            style={{ padding: '10px', textAlign: 'left', backgroundColor: activeTab === 'students' ? '#007bff' : '#f8f9fa', color: activeTab === 'students' ? 'white' : 'black', border: '1px solid #dee2e6', borderRadius: '4px', cursor: 'pointer' }}
           >
-            👥 Daftar Siswa
+            <Users size={18} /> Daftar Siswa
           </button>
           <button 
+            className={`td-nav-btn ${activeTab === 'approval' ? 'active' : ''}`}
             onClick={() => setActiveTab('approval')}
-            style={{ padding: '10px', textAlign: 'left', backgroundColor: activeTab === 'approval' ? '#007bff' : '#f8f9fa', color: activeTab === 'approval' ? 'white' : 'black', border: '1px solid #dee2e6', borderRadius: '4px', cursor: 'pointer', position: 'relative' }}
           >
-            <CheckCircle size={18} style={{ marginRight: '8px' }} /> Persetujuan Siswa
+            <CheckCircle size={18} /> Persetujuan
             {metrics?.pendingStudents?.length > 0 && (
-              <span style={{ position: 'absolute', right: '10px', background: '#dc3545', color: 'white', borderRadius: '50%', padding: '2px 8px', fontSize: '12px', fontWeight: 'bold' }}>
-                {metrics.pendingStudents.length}
-              </span>
+              <span className="td-badge">{metrics.pendingStudents.length}</span>
             )}
           </button>
           <button 
+            className={`td-nav-btn ${activeTab === 'reflections' ? 'active' : ''}`}
             onClick={() => setActiveTab('reflections')}
-            style={{ padding: '10px', textAlign: 'left', backgroundColor: activeTab === 'reflections' ? '#007bff' : '#f8f9fa', color: activeTab === 'reflections' ? 'white' : 'black', border: '1px solid #dee2e6', borderRadius: '4px', cursor: 'pointer' }}
           >
-            📝 Laporan Refleksi
+            <MessageSquare size={18} /> Refleksi AI
           </button>
-        </div>
+        </aside>
 
         {/* CONTENT AREA */}
-        <div style={{ flex: 1, backgroundColor: '#fdfdfd', padding: '20px', border: '1px solid #dee2e6', borderRadius: '8px' }}>
+        <main className="td-content">
           
           {/* OVERVIEW TAB */}
           {activeTab === 'overview' && (
-            <div>
-              <h2>Overview Kelas</h2>
+            <section>
+              <h2 className="td-section-title">Overview Kelas</h2>
+              <p className="td-section-subtitle">Ringkasan performa kelas Anda hari ini.</p>
               
-              <div style={{ display: 'flex', gap: '20px', marginBottom: '30px' }}>
-                <div style={{ flex: 1, padding: '20px', backgroundColor: '#e9ecef', borderRadius: '8px', textAlign: 'center' }}>
-                  <div style={{ fontSize: '14px', color: '#666' }}>Rata-Rata Mastery Kelas</div>
-                  <div style={{ fontSize: '36px', fontWeight: 'bold', color: '#28a745' }}>{Math.round(metrics.classAverages.mastery)}</div>
+              <div className="td-stats-grid">
+                <div className="td-stat-card">
+                  <span className="td-stat-label">Total Siswa Aktif</span>
+                  <span className="td-stat-value" style={{ color: '#2563eb' }}>{metrics.students.length}</span>
                 </div>
-                <div style={{ flex: 1, padding: '20px', backgroundColor: '#e9ecef', borderRadius: '8px', textAlign: 'center' }}>
-                  <div style={{ fontSize: '14px', color: '#666' }}>Rata-Rata Waktu Bermain</div>
-                  <div style={{ fontSize: '36px', fontWeight: 'bold', color: '#17a2b8' }}>{Math.round(metrics.classAverages.totalTimeSec / 60)} mnt</div>
+                <div className="td-stat-card">
+                  <span className="td-stat-label">Rata-Rata Mastery Kelas</span>
+                  <span className="td-stat-value" style={{ color: '#10b981' }}>{Math.round(metrics.classAverages.mastery)}</span>
+                </div>
+                <div className="td-stat-card">
+                  <span className="td-stat-label">Rata-Rata Waktu Bermain</span>
+                  <span className="td-stat-value" style={{ color: '#8b5cf6' }}>{Math.round(metrics.classAverages.totalTimeSec / 60)} mnt</span>
                 </div>
               </div>
 
-              <h3>Peringatan Miskonsepsi Terbanyak</h3>
-              <p style={{ color: '#666', fontSize: '14px' }}>Materi berikut disarankan untuk dibahas kembali di pertemuan kelas besok:</p>
+              <h2 className="td-section-title">Actionable Insights</h2>
+              <p className="td-section-subtitle">Prioritas miskonsepsi terbanyak yang harus dibahas di kelas.</p>
               
-              {metrics.misconceptions.length === 0 ? (
-                <div style={{ padding: '15px', backgroundColor: '#d4edda', color: '#155724', borderRadius: '4px' }}>Belum ada miskonsepsi signifikan yang terdeteksi.</div>
+              {sortedMisconceptions.length === 0 ? (
+                <div className="td-empty-state">Belum ada miskonsepsi signifikan yang terdeteksi. Kinerja kelas sangat baik!</div>
               ) : (
-                <div style={{ display: 'flex', flexDirection: 'column', gap: '10px' }}>
-                  {metrics.misconceptions.map((m, i) => {
+                <div className="td-action-list">
+                  {sortedMisconceptions.map((m, i) => {
                     const info = misconceptionsData[m.tag];
+                    const isHighPriority = m.count >= 3 || i === 0; // Highlight top or frequent ones
                     return (
-                      <div key={i} style={{ padding: '15px', borderLeft: '5px solid #dc3545', backgroundColor: '#fff', border: '1px solid #dee2e6' }}>
-                        <div style={{ display: 'flex', justifyContent: 'space-between' }}>
-                          <strong>{m.tag} (Terjadi {m.count} kali)</strong>
-                          <span style={{ color: '#dc3545', fontWeight: 'bold' }}>Prioritas Tinggi</span>
+                      <div key={i} className={`td-action-item ${isHighPriority ? '' : 'warning'}`}>
+                        <div style={{ flex: 1 }}>
+                          <div className="td-action-header">
+                            <span className="td-action-title">{m.tag}</span>
+                            <span className={`td-action-badge ${isHighPriority ? '' : 'warning'}`}>
+                              Terjadi {m.count} kali
+                            </span>
+                          </div>
+                          <p style={{ margin: 0, color: '#64748b', fontSize: '0.95rem' }}>
+                            {info ? info.description : 'Deskripsi tidak ditemukan'}
+                          </p>
                         </div>
-                        <p style={{ margin: '10px 0 0 0', fontSize: '14px' }}>{info ? info.description : 'Deskripsi tidak ditemukan'}</p>
                       </div>
                     );
                   })}
                 </div>
               )}
-            </div>
+            </section>
           )}
 
           {/* STUDENTS TAB */}
           {activeTab === 'students' && (
-            <div>
-              <h2>Daftar Siswa</h2>
-              <table style={{ width: '100%', borderCollapse: 'collapse', marginTop: '15px' }}>
-                <thead>
-                  <tr style={{ backgroundColor: '#f8f9fa', borderBottom: '2px solid #dee2e6' }}>
-                    <th style={{ padding: '12px', textAlign: 'left' }}>Nama Siswa</th>
-                    <th style={{ padding: '12px', textAlign: 'left' }}>NIS</th>
-                    <th style={{ padding: '12px', textAlign: 'center' }}>Ep Selesai</th>
-                    <th style={{ padding: '12px', textAlign: 'center' }}>Mastery</th>
-                    <th style={{ padding: '12px', textAlign: 'center' }}>Badge</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {metrics.students.map((s, i) => (
-                    <tr key={i} style={{ borderBottom: '1px solid #dee2e6' }}>
-                      <td style={{ padding: '12px' }}>{s.name}</td>
-                      <td style={{ padding: '12px', color: '#666' }}>{s.nis}</td>
-                      <td style={{ padding: '12px', textAlign: 'center' }}>{s.completedEpisodes} / 4</td>
-                      <td style={{ padding: '12px', textAlign: 'center', fontWeight: 'bold', color: s.currentMastery > 75 ? '#28a745' : (s.currentMastery < 50 ? '#dc3545' : '#fd7e14') }}>
-                        {Math.round(s.currentMastery)}
-                      </td>
-                      <td style={{ padding: '12px', textAlign: 'center', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '4px' }}><Trophy size={16} color="#d4af37" /> {s.badges}</td>
+            <section>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '16px' }}>
+                <div>
+                  <h2 className="td-section-title">Daftar Siswa</h2>
+                  <p className="td-section-subtitle">Pantau progres individu dan tingkat penguasaan (Mastery).</p>
+                </div>
+                <button className="td-btn-primary" onClick={exportToCSV}>
+                  <Download size={18} /> Ekspor Data (CSV)
+                </button>
+              </div>
+
+              <div className="td-table-wrapper">
+                <table className="td-table">
+                  <thead>
+                    <tr>
+                      <th>Nama Siswa</th>
+                      <th>NIS</th>
+                      <th style={{ textAlign: 'center' }}>Ep Selesai</th>
+                      <th>Mastery</th>
+                      <th style={{ textAlign: 'center' }}>Badge</th>
                     </tr>
-                  ))}
-                  {metrics.students.length === 0 && (
-                    <tr><td colSpan="5" style={{ padding: '20px', textAlign: 'center' }}>Belum ada data siswa.</td></tr>
-                  )}
-                </tbody>
-              </table>
-            </div>
+                  </thead>
+                  <tbody>
+                    {metrics.students.map((s, i) => {
+                      const masteryVal = Math.round(s.currentMastery);
+                      const barColor = masteryVal >= 75 ? 'var(--td-success)' : (masteryVal < 50 ? 'var(--td-danger)' : 'var(--td-warning)');
+                      return (
+                        <tr key={i}>
+                          <td style={{ fontWeight: '500' }}>{s.name}</td>
+                          <td style={{ color: 'var(--td-text-muted)' }}>{s.nis}</td>
+                          <td style={{ textAlign: 'center', fontWeight: '500' }}>{s.completedEpisodes} / 4</td>
+                          <td>
+                            <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+                              <span style={{ fontWeight: 'bold', width: '32px', color: barColor }}>{masteryVal}</span>
+                              <div className="td-progress-container" style={{ flex: 1, maxWidth: '120px' }}>
+                                <div className="td-progress-bar" style={{ width: `${Math.min(masteryVal, 100)}%`, backgroundColor: barColor }}></div>
+                              </div>
+                            </div>
+                          </td>
+                          <td style={{ textAlign: 'center' }}>
+                            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '6px', fontWeight: '600' }}>
+                              <Trophy size={16} color="#d4af37" /> {s.badges}
+                            </div>
+                          </td>
+                        </tr>
+                      );
+                    })}
+                    {metrics.students.length === 0 && (
+                      <tr><td colSpan="5" className="td-empty-state" style={{ border: 'none' }}>Belum ada data siswa.</td></tr>
+                    )}
+                  </tbody>
+                </table>
+              </div>
+            </section>
           )}
 
           {/* APPROVAL TAB */}
           {activeTab === 'approval' && (
-            <div>
-              <h2>Persetujuan Aktivasi Siswa</h2>
-              <p style={{ color: '#666', fontSize: '14px' }}>Siswa di bawah ini telah mendaftar menggunakan Kode Kelas Anda. Setujui untuk mengaktifkan akun mereka.</p>
+            <section>
+              <h2 className="td-section-title">Persetujuan Aktivasi Siswa</h2>
+              <p className="td-section-subtitle">Siswa di bawah ini telah mendaftar menggunakan Kode Kelas Anda. Setujui untuk mengaktifkan akun mereka.</p>
               
-              <div style={{ display: 'flex', flexDirection: 'column', gap: '10px', marginTop: '15px' }}>
+              <div className="td-action-list" style={{ marginTop: '24px' }}>
                 {metrics.pendingStudents && metrics.pendingStudents.map((s, i) => (
-                  <div key={i} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '15px', backgroundColor: '#fff', border: '1px solid #dee2e6', borderRadius: '6px' }}>
-                    <div>
-                      <strong style={{ fontSize: '16px' }}>{s.name}</strong>
-                      <div style={{ fontSize: '14px', color: '#666' }}>NIS: {s.nis}</div>
+                  <div key={i} className="td-action-item" style={{ borderLeftColor: 'var(--td-primary)', alignItems: 'center' }}>
+                    <div style={{ flex: 1 }}>
+                      <strong style={{ fontSize: '1.1rem', display: 'block', marginBottom: '4px' }}>{s.name}</strong>
+                      <span style={{ color: 'var(--td-text-muted)', fontSize: '0.9rem' }}>NIS: {s.nis}</span>
                     </div>
-                    <div>
-                      <button 
-                        onClick={() => handleApprove(s.nis, s.name)} 
-                        style={{ padding: '8px 15px', backgroundColor: '#28a745', color: 'white', border: 'none', borderRadius: '4px', cursor: 'pointer', fontWeight: 'bold' }}
-                      >
-                        Setujui Aktivasi
-                      </button>
-                    </div>
+                    <button 
+                      className="td-btn-success"
+                      onClick={() => handleApprove(s.nis, s.name)} 
+                    >
+                      <CheckCircle size={16} style={{ display: 'inline', verticalAlign: 'text-bottom', marginRight: '4px' }}/> Setujui Aktivasi
+                    </button>
                   </div>
                 ))}
                 
                 {(!metrics.pendingStudents || metrics.pendingStudents.length === 0) && (
-                  <div style={{ padding: '20px', textAlign: 'center', backgroundColor: '#f8f9fa', borderRadius: '6px', color: '#666' }}>
-                    Tidak ada siswa yang menunggu persetujuan.
+                  <div className="td-empty-state">
+                    Semua siswa telah disetujui. Tidak ada antrean baru.
                   </div>
                 )}
               </div>
-            </div>
+            </section>
           )}
 
           {/* REFLECTIONS TAB */}
           {activeTab === 'reflections' && (
-            <div>
-              <h2>Laporan Refleksi AI</h2>
-              <p style={{ color: '#666', fontSize: '14px' }}>Hasil penilaian otomatis dari refleksi akhir episode siswa.</p>
+            <section>
+              <h2 className="td-section-title">Laporan Refleksi AI</h2>
+              <p className="td-section-subtitle">Hasil penilaian otomatis dari jurnal pemahaman siswa di akhir episode.</p>
               
-              <div style={{ display: 'flex', flexDirection: 'column', gap: '15px', marginTop: '20px' }}>
+              <div style={{ marginTop: '24px' }}>
                 {metrics.reflections.map((r, i) => (
-                  <div key={i} style={{ padding: '15px', backgroundColor: '#fff', border: '1px solid #dee2e6', borderRadius: '6px' }}>
-                    <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '10px' }}>
-                      <strong>{r.studentName} (Episode {r.episodeId})</strong>
-                      <span style={{ padding: '4px 8px', backgroundColor: r.score >= 2 ? '#d4edda' : '#f8d7da', color: r.score >= 2 ? '#155724' : '#721c24', borderRadius: '4px', fontWeight: 'bold', fontSize: '14px' }}>
+                  <div key={i} className="td-reflection-card">
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                      <strong style={{ fontSize: '1.1rem', color: 'var(--td-text-main)' }}>{r.studentName} <span style={{ color: 'var(--td-text-muted)', fontWeight: 'normal', fontSize: '0.9rem' }}>- Episode {r.episodeId}</span></strong>
+                      <span className="td-action-badge" style={{ backgroundColor: r.score >= 2 ? 'var(--td-success)' : 'var(--td-danger)', color: 'white' }}>
                         Skor AI: {r.score} / 3
                       </span>
                     </div>
-                    <p style={{ fontStyle: 'italic', color: '#555', margin: '0 0 10px 0', padding: '10px', backgroundColor: '#f8f9fa', borderLeft: '3px solid #ccc' }}>
+                    <div className="td-reflection-quote">
                       "{r.text}"
-                    </p>
-                    <div style={{ fontSize: '12px', color: '#666' }}>
+                    </div>
+                    <div style={{ fontSize: '0.85rem', color: 'var(--td-text-muted)' }}>
                       <strong>Kata kunci terdeteksi: </strong> 
-                      {r.keywords.length > 0 ? r.keywords.join(', ') : 'Tidak ada'}
+                      <span style={{ color: 'var(--td-primary)' }}>{r.keywords.length > 0 ? r.keywords.join(', ') : 'Tidak ada'}</span>
                     </div>
                   </div>
                 ))}
+                
                 {metrics.reflections.length === 0 && (
-                  <div style={{ padding: '15px', backgroundColor: '#f8f9fa', textAlign: 'center', color: '#666' }}>
-                    Belum ada refleksi yang dikumpulkan.
+                  <div className="td-empty-state">
+                    Belum ada jurnal refleksi yang dikumpulkan.
                   </div>
                 )}
               </div>
-            </div>
+            </section>
           )}
 
-        </div>
+        </main>
       </div>
     </div>
   );

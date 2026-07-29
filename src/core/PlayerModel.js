@@ -17,6 +17,7 @@ export class PlayerModel {
     // Auto-subscribe to events to update state
     eventBus.on(EVENTS.QUESTION_ANSWERED, this.handleQuestionAnswered.bind(this));
     eventBus.on(EVENTS.EPISODE_COMPLETED, this.handleEpisodeCompleted.bind(this));
+    eventBus.on(EVENTS.EPISODE_FAILED, this.handleEpisodeFailed.bind(this));
     eventBus.on(EVENTS.REFLECTION_SUBMITTED, this.handleReflectionSubmitted.bind(this));
   }
 
@@ -30,6 +31,7 @@ export class PlayerModel {
       mastery: 50,
       xp: 0,
       completedEpisodes: new Set(),
+      failedEpisodes: {}, // { [episodeId]: timestamp }
       earnedBadges: new Set(),
       episodeStats: {}, // { [episodeId]: { correctCount, totalCount, hintsUsed, totalTimeSec, totalTimeLimitSec } }
       allResults: [] // Array of question results
@@ -42,6 +44,7 @@ export class PlayerModel {
       ...this.state,
       ...savedState,
       completedEpisodes: new Set(savedState.completedEpisodes || []),
+      failedEpisodes: savedState.failedEpisodes || {},
       earnedBadges: new Set(savedState.earnedBadges || [])
     };
     eventBus.emit(EVENTS.DATA_LOADED, this.state);
@@ -51,6 +54,7 @@ export class PlayerModel {
     return {
       ...this.state,
       completedEpisodes: new Set(this.state.completedEpisodes),
+      failedEpisodes: { ...this.state.failedEpisodes },
       earnedBadges: new Set(this.state.earnedBadges)
     };
   }
@@ -176,6 +180,9 @@ export class PlayerModel {
   handleEpisodeCompleted(payload) {
     // payload: { episodeId }
     this.state.completedEpisodes.add(payload.episodeId);
+    if (this.state.failedEpisodes[payload.episodeId]) {
+      delete this.state.failedEpisodes[payload.episodeId];
+    }
 
     const epStats = this.state.episodeStats[payload.episodeId];
     if (epStats) {
@@ -196,6 +203,12 @@ export class PlayerModel {
     }
 
     this._checkAndAwardBadges();
+  }
+
+  handleEpisodeFailed(payload) {
+    // payload: { episodeId }
+    this.state.failedEpisodes[payload.episodeId] = Date.now();
+    // Auto save will be triggered via event bus if we emit, but FSMEngine transition to DASHBOARD will trigger it anyway.
   }
 
   handleReflectionSubmitted(payload) {

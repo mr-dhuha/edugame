@@ -3,23 +3,18 @@ import { fsm, STATES } from '../core/FSMEngine';
 import episodesData from '../data/episodes.json';
 import gameRules from '../data/gameRules.json';
 import { isEpisodeUnlocked } from '../core/AdaptiveEngine';
+import SeaBackground from './3d/SeaBackground';
 import './DashboardScreen.css';
 
 /*
-  4 episode nodes placed on islands across an ocean map.
-  Using a variety of assets from level_map
+  Titik koordinat relatif (persentase) terhadap gambar peta (progressive map)
+  Disesuaikan dengan posisi pulau dari bawah ke atas pada episodeX.png
 */
 const NODES = [
-  { x: 50, y: 78, island: '/img/island 1.png', w: 160, deco: '/img/coconut1.png', decoW: '25%', decoX: '65%', decoY: '42%', labelPos: 'bottom' },
-  { x: 28, y: 58, island: '/img/island 2.png', w: 140, deco: '/img/house.png', decoW: '40%', decoX: '50%', decoY: '38%', labelPos: 'right' },
-  { x: 72, y: 38, island: '/img/island 3.png', w: 130, deco: '/img/stones 1.png', decoW: '45%', decoX: '55%', decoY: '38%', labelPos: 'left' },
-  { x: 50, y: 18, island: '/img/island 4.png', w: 150, deco: '/img/cave.png', decoW: '55%', decoX: '50%', decoY: '38%', labelPos: 'top' },
-];
-
-const BRIDGES = [
-  '/img/bridge 1.png',
-  '/img/bridge 2.png',
-  '/img/bridge 3.png'
+  { x: 50, y: 77 }, // Episode 1 (Jejak Teori)
+  { x: 50, y: 58 }, // Episode 2 (Derajat Keasaman)
+  { x: 50, y: 40 }, // Episode 3 (Detektif Warna)
+  { x: 50, y: 22 }, // Episode 4 (Titrasi)
 ];
 
 const ROMAN = ['I', 'II', 'III', 'IV'];
@@ -34,22 +29,15 @@ export default function DashboardScreen({ playerState }) {
 
   const isGraduated = playerState.completedEpisodes.size >= episodesData.length;
   const masteryPct = Math.max(0, Math.min(100, (playerState.mastery / gameRules.mastery.maxValue) * 100));
+  
+  // Tentukan gambar progressive map berdasarkan jumlah episode yang diselesaikan
+  const currentLevel = Math.min(playerState.completedEpisodes.size + 1, 4);
+  const mapImage = `/img/episode${currentLevel}.png`;
 
   return (
     <div className="map-screen">
-      {/* Background requested by user */}
-      <img src="/img/bg.png" alt="" className="map-bg" />
-
-      {/* Floating clouds */}
-      <img src="/img/cloud1.png" alt="" className="cloud c1" />
-      <img src="/img/cloud2.png" alt="" className="cloud c2" />
-      <img src="/img/cloud1.png" alt="" className="cloud c3" />
-      <img src="/img/cloud2.png" alt="" className="cloud c4" />
-
-      {/* Logo */}
-      <div className="logo-wrap">
-        <img src="/img/logo.png" alt="ChemQuest Pesisir Meranti" className="logo" />
-      </div>
+      {/* 3D Animated Background */}
+      <SeaBackground />
 
       {/* Compact Stats */}
       <div className="compact-stats">
@@ -63,130 +51,50 @@ export default function DashboardScreen({ playerState }) {
         </div>
       </div>
 
-      {/* Island map area */}
-      <div className="island-map">
+      {/* Progressive Map Area */}
+      <div className="island-map-container" style={{ width: '100%', flex: 1, display: 'flex', justifyContent: 'center', alignItems: 'flex-start', padding: '10px 0 40px 0' }}>
         
-        {/* Bridge connectors between nodes */}
-        {[0, 1, 2].map(i => {
-          const a = NODES[i], b = NODES[i + 1];
-          const completed = playerState.completedEpisodes.has(episodesData[i].id);
-          const dist = Math.hypot(b.x - a.x, b.y - a.y);
-          const isUpward = i % 2 === 0;
+        {/* Gambar Peta Utama dengan proporsi asli */}
+        <div style={{ position: 'relative', width: '100%', maxWidth: '500px' }}>
+          <img 
+            src={mapImage} 
+            alt={`Map Level ${currentLevel}`} 
+            style={{ width: '100%', height: 'auto', display: 'block', filter: 'drop-shadow(0 10px 20px rgba(0,0,0,0.2))' }} 
+          />
 
-          return (
-            <div
-              key={`bridge-${i}`}
-              className={`bridge-path ${completed ? 'visible' : 'dimmed'}`}
-              style={{
-                position: 'absolute',
-                left: `${a.x}%`,
-                top: `${a.y}%`,
-                width: `${dist}%`,
-                height: '80px', // Beri ruang yang cukup untuk lengkungan
-                transformOrigin: '0 50%',
-                transform: `translateY(-50%) rotate(${Math.atan2((b.y - a.y), (b.x - a.x))}rad)`,
-                zIndex: 1,
-                pointerEvents: 'none',
-              }}
-            >
-              <svg width="100%" height="100%" viewBox="0 0 100 100" preserveAspectRatio="none" style={{ overflow: 'visible' }}>
-                <path 
-                  d={isUpward ? "M 0 50 C 25 -20, 75 120, 100 50" : "M 0 50 C 25 120, 75 -20, 100 50"}
-                  fill="none"
-                  stroke={completed ? "#ffc107" : "rgba(59,42,26,0.35)"} 
-                  strokeWidth="10" 
-                  strokeDasharray="16 20" 
-                  strokeLinecap="round"
-                  vectorEffect="non-scaling-stroke"
-                  style={{ filter: completed ? 'drop-shadow(0px 3px 6px rgba(0,0,0,0.6))' : 'none' }}
-                />
-              </svg>
-            </div>
-          );
-        })}
-
-        {/* Island nodes */}
-        {episodesData.map((ep, i) => {
-          const node = NODES[i];
-          const unlocked = isEpisodeUnlocked(ep.id, playerState.completedEpisodes, episodesData);
-          const completed = playerState.completedEpisodes.has(ep.id);
-          const status = completed ? 'completed' : unlocked ? 'unlocked' : 'locked';
-
-          return (
-            <div
-              key={ep.id}
-              className={`island-node ${status}`}
-              style={{ left: `${node.x}%`, top: `${node.y}%` }}
-              onClick={() => (unlocked || completed) && setSelectedEp(ep)}
-            >
-              {/* Island artwork container */}
-              <div style={{ position: 'relative', width: node.w, display: 'flex', flexDirection: 'column', alignItems: 'center' }}>
-                <img src={node.island} alt="" className="island-img" style={{ width: '100%', display: 'block' }} />
-
-                {/* Decorative element sitting on the island */}
-                <img
-                  src={node.deco}
-                  alt=""
-                  className="island-deco"
-                  style={{ position: 'absolute', left: node.decoX, top: node.decoY, width: node.decoW, transform: 'translate(-50%, -100%)' }}
-                />
-
-                {/* Level dot / Lock - Moved to bottom of island so it doesn't overlap deco */}
-                <div className="level-dot-wrap" style={{ position: 'absolute', bottom: '5%', left: '50%', transform: 'translate(-50%, 0)', top: 'auto' }}>
-                  {status === 'locked' ? (
-                    <img src="/img/lock.png" alt="Terkunci" className="lock-icon" />
-                  ) : (
-                    <>
-                      <img src={completed ? '/img/dot_active.png' : '/img/dot_active.png'} alt="" className="dot-img" />
-                      <span className="dot-num">{ROMAN[i]}</span>
-                    </>
-                  )}
-                </div>
-
-                {/* Stars for completed */}
-                {completed && (
-                  <img src="/img/star3.png" alt="Selesai" className="stars-img" style={{ position: 'absolute', bottom: '-15%', left: '50%', transform: 'translateX(-50%)' }} />
-                )}
+          {/* Invisible Hitboxes / Buttons di atas Peta Utama */}
+          {episodesData.map((ep, i) => {
+            const node = NODES[i];
+            const unlocked = isEpisodeUnlocked(ep.id, playerState.completedEpisodes, episodesData);
+            const completed = playerState.completedEpisodes.has(ep.id);
+            
+            return (
+              <div
+                key={ep.id}
+                className="island-hitbox"
+                style={{ 
+                  position: 'absolute', 
+                  left: `${node.x}%`, 
+                  top: `${node.y}%`, 
+                  transform: 'translate(-50%, -50%)',
+                  cursor: (unlocked || completed) ? 'pointer' : 'not-allowed',
+                  zIndex: 10,
+                  width: '60%',     // Area klik lebar 60% dari gambar
+                  height: '15%',    // Area klik tinggi 15% dari gambar
+                  borderRadius: '30px',
+                  // Uncomment line di bawah untuk debugging area hitbox:
+                  // background: 'rgba(255, 0, 0, 0.2)', border: '2px solid red'
+                }}
+                onClick={() => (unlocked || completed) && setSelectedEp(ep)}
+              >
+                {/* Tidak ada elemen HTML berlebih. Klik langsung di area gambar pulau. */}
               </div>
-
-                {/* Level Title Banner */}
-                <div
-                  className="level-title-banner"
-                  style={{
-                    position: 'absolute',
-                    ...(node.labelPos === 'bottom' ? { bottom: '-65px', left: '50%', transform: 'translateX(-50%)' } :
-                        node.labelPos === 'top' ? { top: '-55px', left: '50%', transform: 'translateX(-50%)' } :
-                        node.labelPos === 'left' ? { right: '110%', top: '50%', transform: 'translateY(-50%)' } :
-                        { left: '110%', top: '50%', transform: 'translateY(-50%)' }
-                    ),
-                    background: '#eaddc5',
-                    padding: '6px 12px',
-                    borderRadius: '8px',
-                    border: '2px solid #d4c4a8',
-                    color: '#3b2a1a',
-                    fontFamily: "'Cinzel Decorative', serif",
-                    fontSize: '0.8rem',
-                    fontWeight: 'bold',
-                    boxShadow: '0 4px 6px rgba(0,0,0,0.3)',
-                    textAlign: 'center',
-                    whiteSpace: 'normal',
-                    width: 'max-content',
-                    maxWidth: '140px',
-                    lineHeight: '1.2',
-                    zIndex: 10,
-                    pointerEvents: 'none'
-                  }}
-                >
-                  {ep.title}
-                </div>
-            </div>
-          );
-        })}
+            );
+          })}
+        </div>
       </div>
 
-
-
-      {/* Bottom drawer (Now a Centered Modal) */}
+      {/* Bottom drawer (Centered Modal) */}
       {selectedEp && (
         <div className="drawer-bg" onClick={() => setSelectedEp(null)}>
           <div className="drawer" onClick={(e) => e.stopPropagation()}>

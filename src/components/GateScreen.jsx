@@ -1,6 +1,7 @@
 import React from 'react';
 import { fsm, STATES } from '../core/FSMEngine';
 import { getNextDifficulty } from '../core/AdaptiveEngine';
+import { playerModel } from '../core/PlayerModel';
 
 export default function GateScreen({ context }) {
   // In a real app, this result would be passed in payload or state.
@@ -8,18 +9,14 @@ export default function GateScreen({ context }) {
   // Since we transition to GATE_CHECK with payload, we assume the wrapper passed it or we recalculate.
   // To keep it simple, we'll just read from FSM context if we stored it, or recalculate.
   
-  // Let's assume fsm context doesn't have the full payload easily accessible here without a context provider.
-  // So we'll use a hack for the minimal shell: read from window or rely on parent.
-  // Actually, let's just make the parent pass the fsm state payload? No, we didn't save it.
-  // I will just mock the UI for the gate for now.
-  
+  const gateResult = context.gateResult || {};
+  const isFailed = gateResult.needsRemediation;
+
   const handleProceed = () => {
-    // Mock logic: assume we passed and go to next difficulty or reflection
     if (context.currentDifficulty === 'Hard') {
       fsm.transition(STATES.EPISODE_REFLECTION);
     } else {
       const nextDiff = context.currentDifficulty === 'Easy' ? 'Medium' : 'Hard';
-      // Hacky state update for context in minimal shell
       fsm.context.currentDifficulty = nextDiff;
       fsm.context.gateQuestionCount = 0;
       fsm.transition(STATES.QUESTION_START);
@@ -44,14 +41,16 @@ export default function GateScreen({ context }) {
         </div>
         
         <p style={{ fontSize: '1.1rem', color: '#f4e4c1', lineHeight: '1.5', marginBottom: '10px', textShadow: '1px 1px 2px rgba(0,0,0,0.8)' }}>
-          Sistem sedang mengevaluasi penguasaanmu di level ini...
+          {isFailed 
+            ? "Kamu butuh penguatan ulang pada konsep ini, tapi jangan menyerah!"
+            : "Kerja bagus! Sistem mencatat penguasaanmu di level ini."}
         </p>
 
         <button 
           onClick={handleProceed}
           style={{ width: '100%', padding: '14px 24px', backgroundColor: '#2a6f8f', color: '#f4e4c1', border: '2px solid rgba(255,255,255,0.2)', borderRadius: '12px', cursor: 'pointer', fontFamily: "'Cinzel Decorative', serif", fontSize: '1.1rem', fontWeight: '700', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '10px', boxShadow: '0 4px 6px rgba(0,0,0,0.3)', transition: 'all 0.2s ease' }}
         >
-          Lanjutkan Misi
+          {context.currentDifficulty === 'Hard' ? "Lanjut ke Refleksi" : "Lanjut ke Misi Berikutnya"}
         </button>
       </div>
 

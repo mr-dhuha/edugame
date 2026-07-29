@@ -18,8 +18,8 @@ import gameRules from '../data/gameRules.json';
  * @param {number} params.hintLevel - 0-3 (how many hints were used)
  * @returns {Object} { totalXP, baseXP, bonusBreakdown }
  */
-export function calculateQuestionXP({ level, isCorrect, confidence, responseTimeMs, timeLimitSec, hintLevel }) {
-  const baseXP = isCorrect ? (gameRules.xp.basePoints[level] || 100) : 0;
+export function calculateQuestionXP({ level, isCorrect, confidence, responseTimeMs, timeLimitSec, hintLevel, points }) {
+  const baseXP = isCorrect ? (points || gameRules.xp.basePoints[level] || 100) : 0;
   const bonus = gameRules.xp.bonus;
   const bonusBreakdown = {};
   let totalBonus = 0;

@@ -55,7 +55,7 @@ export class FSMEngine {
         this.context.pendingAdaptiveAction = payload.adaptiveAction; // e.g. 'CONTINUE', 'SHOW_HINT'
         break;
       case STATES.GATE_CHECK:
-        // Handled in external loop evaluating the gate
+        this.context.gateResult = payload.gateResult;
         break;
       case STATES.EPISODE_COMPLETE:
         this.context.currentEpisodeId = null;

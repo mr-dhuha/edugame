@@ -1,19 +1,18 @@
 import React, { useEffect, useState } from 'react';
 import { fsm, STATES } from '../core/FSMEngine';
 import { eventBus, EVENTS } from '../core/EventBus';
+import { playerModel } from '../core/PlayerModel';
 
 export default function EpisodeCompleteScreen({ context, playerState }) {
   const [stats, setStats] = useState(null);
 
   useEffect(() => {
     // Notify system that episode is completely done
-    eventBus.emit(EVENTS.EPISODE_COMPLETED, { episodeId: context.currentEpisodeId });
-    
-    // Get stats to show
     const epStats = playerState.episodeStats[context.currentEpisodeId];
     if (epStats) {
       setStats(epStats);
     }
+    eventBus.emit(EVENTS.EPISODE_COMPLETED, { episodeId: context.currentEpisodeId });
   }, [context.currentEpisodeId, playerState.episodeStats]);
 
   const handleReturn = () => {
@@ -23,10 +22,10 @@ export default function EpisodeCompleteScreen({ context, playerState }) {
   return (
     <div style={{ width: '100%', minHeight: '100vh', minHeight: '100dvh', background: '#f4e4c1', padding: '24px 20px', fontFamily: "'EB Garamond', serif", display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center' }}>
       
-      <img src="/img/you_win.png" alt="Misi Selesai!" style={{ width: '100%', maxWidth: '300px', marginBottom: '20px', filter: 'drop-shadow(0 4px 6px rgba(0,0,0,0.2))' }} />
+      <img src="/img/you_win.png" alt="Selesai!" style={{ width: '100%', maxWidth: '300px', marginBottom: '20px', filter: 'drop-shadow(0 4px 6px rgba(0,0,0,0.2))' }} />
       
       <p style={{ fontSize: '1.2rem', color: '#3b2a1a', textAlign: 'center', marginBottom: '24px', backgroundColor: 'rgba(255,255,255,0.5)', padding: '10px 20px', borderRadius: '20px', border: '1px solid rgba(59,42,26,0.1)' }}>
-        Kamu telah berhasil memulihkan data!
+        Kamu telah berhasil menyelesaikan semua misi dan memulihkan data!
       </p>
 
       {stats && (
