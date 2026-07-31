@@ -75,7 +75,7 @@ export function evaluateQuestionOutcome({ isCorrect, confidence, misconceptionTa
  * @returns {Object} { action, correctCount, totalQuestions, message }
  */
 export function evaluateGate(gateResults) {
-  const correctCount = gateResults.filter((r) => r.isCorrect).length;
+  const correctCount = gateResults.filter((r) => r.isCorrect || r.isAnulir).length;
   const totalQuestions = gateResults.length;
   const thresholds = gameRules.gate.thresholds;
 

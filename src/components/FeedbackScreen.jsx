@@ -16,7 +16,7 @@ const TypewriterText = ({ text, speed = 30, onComplete }) => {
   useEffect(() => {
     setDisplayed('');
     if (!text) return;
-    
+
     let i = 0;
     const typingAudio = audioEngine.playSFX('typing');
     const chars = Array.from(text);
@@ -33,7 +33,7 @@ const TypewriterText = ({ text, speed = 30, onComplete }) => {
       clearInterval(interval);
       if (typingAudio) typingAudio.pause();
     };
-  // eslint-disable-next-line react-hooks/exhaustive-deps
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [text, speed]);
   return <span>{displayed}</span>;
 };
@@ -110,12 +110,15 @@ export default function FeedbackScreen({ context }) {
 
   return (
     <div style={{ width: '100%', minHeight: '100vh', minHeight: '100dvh', background: '#f4e4c1', padding: '24px 20px', fontFamily: "'EB Garamond', serif", display: 'flex', flexDirection: 'column' }}>
-      
+
       <div style={{ display: 'flex', alignItems: 'center', gap: '12px', marginBottom: '24px' }}>
         <img src={isCorrect ? "/img/face8.png" : "/img/face3.png"} alt="" style={{ width: '60px', height: '60px', objectFit: 'contain' }} />
         <h2 style={{ fontFamily: "'Cinzel Decorative', serif", fontSize: '1.4rem', color: isCorrect ? '#2a6f3f' : '#a34040', margin: 0 }}>
-          {isCorrect ? 'Tepat Sekali!' : 'Belum Tepat'}
+          {isCorrect ? 'Tepat Sekali!' : (adaptiveAction.isAnulir ? 'Belum Tepat (Dianulir karena sebelumnya pernah benar)' : 'Belum Tepat')}
         </h2>
+        {adaptiveAction.isAnulir && (
+          <div style={{ fontSize: '0.8rem', color: '#a34040', marginTop: '4px' }}>Skor tidak dikurangi karena sebelumnya pernah benar.</div>
+        )}
       </div>
 
       <div style={{ flex: 1, display: 'flex', flexDirection: 'column', backgroundColor: 'rgba(255,255,255,0.7)', borderRadius: '16px', padding: '24px', boxShadow: '0 8px 32px rgba(0,0,0,0.05)', marginBottom: '24px', border: '1.5px solid rgba(59,42,26,0.1)' }}>
@@ -129,7 +132,7 @@ export default function FeedbackScreen({ context }) {
         </div>
 
         <div style={{ fontFamily: "'Cambria Math', 'Times New Roman', serif", fontWeight: '500', fontSize: '1.15rem', lineHeight: '1.8', color: '#3b2a1a', flex: 1, letterSpacing: '0.3px' }}>
-          
+
           {(!isCorrect && isLoadingHint) ? (
             <div style={{ display: 'flex', alignItems: 'center', gap: '8px', fontStyle: 'italic', color: '#6b5a4a', padding: '16px', background: 'rgba(255,255,255,0.5)', borderRadius: '12px' }}>
               <img src="/img/robot1.png" alt="" style={{ width: '28px', animation: 'pulse 1.5s infinite' }} /> {loadingText}
@@ -145,10 +148,10 @@ export default function FeedbackScreen({ context }) {
             adaptiveAction.feedback
           )}
 
-          <img 
-            src={`/img/hints/${adaptiveAction.questionId}.jpg`} 
-            onError={(e) => e.target.style.display = 'none'} 
-            alt="Ilustrasi Pendukung" 
+          <img
+            src={`/img/hints/${adaptiveAction.questionId}.jpg`}
+            onError={(e) => e.target.style.display = 'none'}
+            alt="Ilustrasi Pendukung"
             style={{ width: '100%', borderRadius: '12px', marginTop: '16px', objectFit: 'contain' }}
           />
         </div>
@@ -161,21 +164,21 @@ export default function FeedbackScreen({ context }) {
       <button
         onClick={handleContinue}
         disabled={isLoadingHint || isTyping}
-        style={{ 
-          width: '100%', 
-          padding: '16px', 
-          backgroundColor: (isLoadingHint || isTyping) ? '#9ca3af' : '#2a6f8f', 
-          color: (isLoadingHint || isTyping) ? '#e5e7eb' : '#f4e4c1', 
-          border: 'none', 
-          borderRadius: '12px', 
-          cursor: (isLoadingHint || isTyping) ? 'not-allowed' : 'pointer', 
-          fontFamily: "'Cinzel Decorative', serif", 
-          fontSize: '1.1rem', 
-          fontWeight: '700', 
-          letterSpacing: '1px', 
-          display: 'flex', 
-          alignItems: 'center', 
-          justifyContent: 'center', 
+        style={{
+          width: '100%',
+          padding: '16px',
+          backgroundColor: (isLoadingHint || isTyping) ? '#9ca3af' : '#2a6f8f',
+          color: (isLoadingHint || isTyping) ? '#e5e7eb' : '#f4e4c1',
+          border: 'none',
+          borderRadius: '12px',
+          cursor: (isLoadingHint || isTyping) ? 'not-allowed' : 'pointer',
+          fontFamily: "'Cinzel Decorative', serif",
+          fontSize: '1.1rem',
+          fontWeight: '700',
+          letterSpacing: '1px',
+          display: 'flex',
+          alignItems: 'center',
+          justifyContent: 'center',
           gap: '8px',
           transition: 'all 0.3s ease'
         }}

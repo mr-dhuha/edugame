@@ -194,9 +194,12 @@ export default function QuestionScreen({ context, fsmState }) {
     const responseTimeMs = Date.now() - startTimeRef.current;
     const isCorrect = isTimeout ? false : (selectedOption ? selectedOption.isCorrect : false);
     
+    // Anulir: jika sebelumnya pernah benar, jangan hukum siswa jika sekarang salah
+    const isAnulir = !isCorrect && playerModel.state.correctlyAnsweredQuestions.has(question.id);
+    
     // 1. Evaluate adaptive logic (4-quadrant)
-    const adaptiveOutcome = evaluateQuestionOutcome({
-      isCorrect,
+    const adaptiveOutcome = processQuestionResult({
+      isCorrect: isCorrect || isAnulir,
       confidence: confLevel,
       misconceptionTag: question.misconceptionTag,
       feedbackCorrect: question.feedbackCorrect,
@@ -204,7 +207,7 @@ export default function QuestionScreen({ context, fsmState }) {
     });
 
     // 2. Fire events
-    if (adaptiveOutcome.showMisconception) {
+    if (adaptiveOutcome.showMisconception && !isAnulir) {
       eventBus.emit(EVENTS.MISCONCEPTION_DETECTED, {
         questionId: question.id,
         misconceptionTag: question.misconceptionTag,
@@ -217,11 +220,12 @@ export default function QuestionScreen({ context, fsmState }) {
       episode: question.episode,
       level: question.level,
       isCorrect,
+      isAnulir,
       confidence: confLevel,
       responseTimeMs,
       timeLimitSec: question.timeSec,
       hintLevel: hintsUsedRef.current,
-      hasMisconception: adaptiveOutcome.showMisconception,
+      hasMisconception: adaptiveOutcome.showMisconception && !isAnulir,
       concept: question.concept,
       selectedOption: selectedOption ? selectedOption.label : 'TIMEOUT',
       points: question.points // Pass the points for XPEngine
@@ -231,6 +235,7 @@ export default function QuestionScreen({ context, fsmState }) {
     fsm.transition(STATES.FEEDBACK, { 
       adaptiveAction: { 
         ...adaptiveOutcome, 
+        isAnulir,
         questionId: question.id, 
         isTimeout,
         questionText: question.stem,

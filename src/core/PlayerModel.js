@@ -34,7 +34,8 @@ export class PlayerModel {
       failedEpisodes: {}, // { [episodeId]: timestamp }
       earnedBadges: new Set(),
       episodeStats: {}, // { [episodeId]: { correctCount, totalCount, hintsUsed, totalTimeSec, totalTimeLimitSec } }
-      allResults: [] // Array of question results
+      allResults: [], // Array of question results
+      correctlyAnsweredQuestions: new Set()
     };
   }
 
@@ -45,7 +46,8 @@ export class PlayerModel {
       ...savedState,
       completedEpisodes: new Set(savedState.completedEpisodes || []),
       failedEpisodes: savedState.failedEpisodes || {},
-      earnedBadges: new Set(savedState.earnedBadges || [])
+      earnedBadges: new Set(savedState.earnedBadges || []),
+      correctlyAnsweredQuestions: new Set(savedState.correctlyAnsweredQuestions || [])
     };
     eventBus.emit(EVENTS.DATA_LOADED, this.state);
   }
@@ -60,7 +62,8 @@ export class PlayerModel {
       ...this.state,
       completedEpisodes: new Set(this.state.completedEpisodes),
       failedEpisodes: { ...this.state.failedEpisodes },
-      earnedBadges: new Set(this.state.earnedBadges)
+      earnedBadges: new Set(this.state.earnedBadges),
+      correctlyAnsweredQuestions: new Set(this.state.correctlyAnsweredQuestions)
     };
   }
 
@@ -68,7 +71,8 @@ export class PlayerModel {
     return JSON.stringify({
       ...this.state,
       completedEpisodes: Array.from(this.state.completedEpisodes),
-      earnedBadges: Array.from(this.state.earnedBadges)
+      earnedBadges: Array.from(this.state.earnedBadges),
+      correctlyAnsweredQuestions: Array.from(this.state.correctlyAnsweredQuestions)
     });
   }
 
@@ -106,14 +110,16 @@ export class PlayerModel {
         this.state.mastery = masteryData[0].new_score;
       }
 
-      // 2. Restore Events (Completed Episodes, Badges, XP)
+      // 2. Restore Events (Completed Episodes, Badges, XP, Question Attempts)
       const { data: eventsData } = await supabase
         .from('analytics_events')
-        .select('event_type, episode_id, metadata')
+        .select('*')
         .eq('student_id', studentId);
 
       if (eventsData) {
         let maxXP = 0;
+        this.state.episodeStats = {}; // Bersihkan dan bangun ulang
+
         eventsData.forEach(ev => {
           if (ev.event_type === 'episode_completed') {
             this.state.completedEpisodes.add(ev.episode_id);
@@ -122,9 +128,39 @@ export class PlayerModel {
             }
           } else if (ev.event_type === 'badge_earned' && ev.metadata && ev.metadata.badge_id) {
             this.state.earnedBadges.add(ev.metadata.badge_id);
+          } else if (ev.event_type === 'question_attempt') {
+            const epId = ev.episode_id;
+            if (!this.state.episodeStats[epId]) {
+              this.state.episodeStats[epId] = {
+                correctCount: 0, totalCount: 0, hintsUsed: 0, totalTimeSec: 0, totalTimeLimitSec: 0, results: []
+              };
+            }
+            const epStats = this.state.episodeStats[epId];
+            epStats.totalCount++;
+            if (ev.is_correct) {
+              epStats.correctCount++;
+              this.state.correctlyAnsweredQuestions.add(ev.question_id);
+            }
+            epStats.hintsUsed += (ev.hints_used || 0);
+            epStats.totalTimeSec += ((ev.response_time_ms || 0) / 1000);
+            epStats.totalTimeLimitSec += 60; // Asumsi default limit jika tidak ada di DB
+            
+            epStats.results.push({
+              questionId: ev.question_id,
+              episode: epId,
+              level: ev.difficulty_level,
+              isCorrect: ev.is_correct,
+              confidence: ev.confidence_level,
+              responseTimeMs: ev.response_time_ms,
+              hintLevel: ev.hints_used
+            });
           }
         });
-        if (maxXP > 0) this.state.xp = maxXP;
+        
+        // Kalkulasi ulang XP: Setidaknya 100 XP untuk setiap pertanyaan unik yang pernah dijawab benar
+        const recalculatedXP = this.state.correctlyAnsweredQuestions.size * 100;
+        // Gunakan maxXP dari riwayat episode_completed, atau recalculatedXP jika lebih besar (misal drop-out tengah episode)
+        this.state.xp = Math.max(maxXP, recalculatedXP);
       }
 
       console.log("[PlayerModel] Synced state from Supabase:", this.state);
@@ -136,18 +172,20 @@ export class PlayerModel {
   handleQuestionAnswered(payload) {
     // payload: { questionId, episode, level, isCorrect, confidence, responseTimeMs, timeLimitSec, hintLevel, hasMisconception }
 
-    // 1. Update Mastery
-    const { newMastery, delta, breakdown } = calculateMasteryDelta(this.state.mastery, payload);
-    const oldMastery = this.state.mastery;
-    this.state.mastery = newMastery;
+    // 1. Update Mastery (Jika dianulir, jangan kurangi mastery)
+    if (!payload.isAnulir) {
+      const { newMastery, delta, breakdown } = calculateMasteryDelta(this.state.mastery, payload);
+      const oldMastery = this.state.mastery;
+      this.state.mastery = newMastery;
 
-    eventBus.emit(EVENTS.MASTERY_UPDATED, {
-      oldMastery,
-      newMastery,
-      delta,
-      breakdown,
-      concept: payload.concept // Needs to be passed in payload
-    });
+      eventBus.emit(EVENTS.MASTERY_UPDATED, {
+        oldMastery,
+        newMastery,
+        delta,
+        breakdown,
+        concept: payload.concept
+      });
+    }
 
     // 2. Update XP
     const xpResult = calculateQuestionXP(payload);

@@ -63,7 +63,11 @@ export default function GateScreen({ context }) {
   }, [context.currentDifficulty, isFailed, gateResult.accuracy]);
 
   const handleProceed = () => {
-    if (context.currentDifficulty === 'Hard') {
+    if (action === 'REMEDIATION') {
+      // Jika Remedial (Coba Soal Setara), kembalikan hitungan soal ke 0 tapi tetap di difficulty yang sama
+      fsm.context.gateQuestionCount = 0;
+      fsm.transition(STATES.QUESTION_START);
+    } else if (context.currentDifficulty === 'Hard') {
       fsm.transition(STATES.EPISODE_REFLECTION);
     } else {
       const nextDiff = context.currentDifficulty === 'Easy' ? 'Medium' : 'Hard';
