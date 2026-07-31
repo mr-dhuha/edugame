@@ -24,21 +24,21 @@ const supabase = createClient(supabaseUrl, supabaseAnonKey);
 const STUDENTS = [
   {
     nis: 'BOT-001',
-    name: 'Bot Siswa Pintar',
+    name: 'Bot siswa Pintar',
     password: '123',
     class_code: 'KIMIA-11A',
     profile: 'SMART'
   },
   {
     nis: 'BOT-002',
-    name: 'Bot Siswa Sedang',
+    name: 'Bot siswa Sedang',
     password: '123',
     class_code: 'KIMIA-11A',
     profile: 'AVERAGE'
   },
   {
     nis: 'BOT-003',
-    name: 'Bot Siswa Kurang',
+    name: 'Bot siswa Kurang',
     password: '123',
     class_code: 'KIMIA-11A',
     profile: 'STRUGGLING'
@@ -55,7 +55,7 @@ const QUESTIONS = [
 const MISCONCEPTIONS = ['M-ARR-01', 'M-BL-01', 'M-ARR-02'];
 
 async function runSimulation() {
-  console.log("🚀 Memulai Simulasi Bot Siswa...");
+  console.log("🚀 Memulai Simulasi Bot siswa...");
 
   // 1. Register Students
   for (const s of STUDENTS) {
@@ -140,7 +140,7 @@ async function runSimulation() {
           delta: delta
         }]);
       }
-      
+
       console.log(`   ✅ Selesai jawab soal Episode ${episodeId}, Mastery=${currentMastery}`);
 
       // Episode Complete Event
@@ -155,7 +155,7 @@ async function runSimulation() {
       // Reflection
       let refScore = s.profile === 'SMART' ? 3 : (s.profile === 'AVERAGE' ? 2 : 1);
       let refKeywords = s.profile === 'SMART' ? ['asam', 'basa', 'proton'] : ['asam'];
-      
+
       await supabase.from('analytics_events').insert([{
         student_id: s.nis,
         session_id: sessionId,
@@ -166,14 +166,14 @@ async function runSimulation() {
 
       // Badge - beri badge untuk smart & average
       if (s.profile === 'SMART' || s.profile === 'AVERAGE') {
-         const badges = ['b-arrhenius', 'b-ph', 'b-indicator', 'b-titration'];
-         await supabase.from('analytics_events').insert([{
-            student_id: s.nis,
-            session_id: sessionId,
-            event_type: 'BADGE_UNLOCKED',
-            episode_id: episodeId,
-            metadata: { badgeId: badges[episodeId - 1] }
-         }]);
+        const badges = ['b-arrhenius', 'b-ph', 'b-indicator', 'b-titration'];
+        await supabase.from('analytics_events').insert([{
+          student_id: s.nis,
+          session_id: sessionId,
+          event_type: 'BADGE_UNLOCKED',
+          episode_id: episodeId,
+          metadata: { badgeId: badges[episodeId - 1] }
+        }]);
       }
 
       console.log(`   🎉 Episode ${episodeId} Selesai. Refleksi Skor: ${refScore}`);

@@ -41,9 +41,19 @@ export default function QuestionScreen({ context, fsmState }) {
         );
       }
       
-      const q = available[Math.floor(Math.random() * available.length)];
+      // Filter out seen questions
+      let unused = available.filter(q => !context.seenQuestions?.includes(q.id));
+      if (unused.length === 0) {
+        // Fallback: If all questions in this pool have been seen, reuse them
+        unused = available;
+      }
+      
+      const q = unused[Math.floor(Math.random() * unused.length)];
       
       if (q) {
+        if (!fsm.context.seenQuestions) fsm.context.seenQuestions = [];
+        fsm.context.seenQuestions.push(q.id);
+        
         // Map database field names to standard format if needed
         q.stem = q.q || q.stem;
         q.timeSec = q.time_sec || q.timeSec || 60;

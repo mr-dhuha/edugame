@@ -22,7 +22,7 @@ export default function LoginScreen() {
       setError('Harap isi Nama Lengkap untuk pendaftaran');
       return;
     }
-    
+
     setLoading(true);
     setError('');
 
@@ -68,16 +68,16 @@ export default function LoginScreen() {
 
           const { error: insertError } = await supabase
             .from('cq_students')
-            .insert([{ nis, name, password, class_code: classCode }]);
-            
+            .insert([{ nis, name, password, class_code: classCode, is_active: true }]);
+
           if (insertError) throw insertError;
-          
+
           playerModel.setProfile(nis, name);
           // Akun baru, belum ada riwayat, tidak perlu sync
         }
       } else {
         // Fallback local jika Supabase tidak jalan
-        playerModel.setProfile(nis, isLoginMode ? 'Siswa Tamu' : name);
+        playerModel.setProfile(nis, isLoginMode ? 'murid Tamu' : name);
       }
 
       fsm.transition(STATES.DASHBOARD);
@@ -91,25 +91,25 @@ export default function LoginScreen() {
 
   return (
     <div style={{ width: '100%', minHeight: '100vh', minHeight: '100dvh', background: 'url(/img/bg_jungle.png) center center / cover no-repeat', display: 'flex', flexDirection: 'column', justifyContent: 'center', padding: '24px 20px', position: 'relative' }}>
-      
+
       {/* Overlay to ensure readability */}
       <div style={{ position: 'absolute', top: 0, left: 0, right: 0, bottom: 0, backgroundColor: 'rgba(244,228,193,0.85)', zIndex: 0 }} />
 
       <div style={{ position: 'relative', zIndex: 1, maxWidth: '400px', margin: '0 auto', width: '100%' }}>
-        
+
         {/* Logo */}
         <div style={{ textAlign: 'center', marginBottom: '32px' }}>
           <img src="/img/logo.png" alt="ChemQuest" style={{ width: '100%', maxWidth: '280px', filter: 'drop-shadow(0 4px 6px rgba(0,0,0,0.15))' }} />
         </div>
 
         <div style={{ display: 'flex', marginBottom: '24px', borderBottom: '2px solid rgba(59,42,26,0.15)' }}>
-          <button 
+          <button
             onClick={() => { setIsLoginMode(true); setError(''); }}
             style={{ flex: 1, padding: '12px', background: 'none', border: 'none', borderBottom: isLoginMode ? '3px solid #2a6f8f' : 'none', fontWeight: isLoginMode ? 'bold' : 'normal', color: isLoginMode ? '#2a6f8f' : '#6b5a4a', cursor: 'pointer', fontSize: '1rem', fontFamily: "'EB Garamond', serif" }}
           >
             Masuk
           </button>
-          <button 
+          <button
             onClick={() => { setIsLoginMode(false); setError(''); }}
             style={{ flex: 1, padding: '12px', background: 'none', border: 'none', borderBottom: !isLoginMode ? '3px solid #2a6f8f' : 'none', fontWeight: !isLoginMode ? 'bold' : 'normal', color: !isLoginMode ? '#2a6f8f' : '#6b5a4a', cursor: 'pointer', fontSize: '1rem', fontFamily: "'EB Garamond', serif" }}
           >
@@ -118,30 +118,30 @@ export default function LoginScreen() {
         </div>
 
         <h2 style={{ fontFamily: "'Cinzel Decorative', serif", fontSize: '1.8rem', color: '#ffd700', textAlign: 'center', marginBottom: '8px', textShadow: '1px 1px 2px rgba(0,0,0,0.8)' }}>
-          {isLoginMode ? 'Selamat Datang Kembali' : 'Buat Akun Siswa'}
+          {isLoginMode ? 'Selamat Datang Kembali' : 'Buat Akun murid'}
         </h2>
-        
+
         {error && <div style={{ color: '#c0392b', marginBottom: '16px', padding: '12px', backgroundColor: 'rgba(192,57,43,0.1)', borderLeft: '4px solid #c0392b', borderRadius: '0 8px 8px 0', fontSize: '0.9rem', fontFamily: "'EB Garamond', serif" }}>{error}</div>}
 
         <form onSubmit={handleSubmit} style={{ backgroundColor: 'rgba(255,255,255,0.7)', padding: '24px', borderRadius: '16px', border: '1.5px solid rgba(59,42,26,0.1)', boxShadow: '0 8px 16px rgba(0,0,0,0.05)' }}>
           <div style={{ marginBottom: '16px' }}>
-            <label style={{ display: 'block', marginBottom: '6px', fontWeight: '600', color: '#6b5a4a', fontSize: '0.8rem', fontFamily: "'Inter', sans-serif", textTransform: 'uppercase', letterSpacing: '0.5px' }}>NISN / ID Siswa</label>
-            <input 
-              type="text" 
-              value={nis} 
+            <label style={{ display: 'block', marginBottom: '6px', fontWeight: '600', color: '#6b5a4a', fontSize: '0.8rem', fontFamily: "'Inter', sans-serif", textTransform: 'uppercase', letterSpacing: '0.5px' }}>NISN / ID murid</label>
+            <input
+              type="text"
+              value={nis}
               onChange={e => setNis(e.target.value)}
               required
               style={{ width: '100%', padding: '14px', border: '1.5px solid rgba(59,42,26,0.2)', borderRadius: '8px', background: '#fff', fontSize: '1rem', color: '#3b2a1a', outline: 'none' }}
               placeholder="Masukkan NISN Anda"
             />
           </div>
-          
+
           {!isLoginMode && (
             <div style={{ marginBottom: '16px' }}>
               <label style={{ display: 'block', marginBottom: '6px', fontWeight: '600', color: '#6b5a4a', fontSize: '0.8rem', fontFamily: "'Inter', sans-serif", textTransform: 'uppercase', letterSpacing: '0.5px' }}>Nama Lengkap</label>
-              <input 
-                type="text" 
-                value={name} 
+              <input
+                type="text"
+                value={name}
                 onChange={e => setName(e.target.value)}
                 required={!isLoginMode}
                 style={{ width: '100%', padding: '14px', border: '1.5px solid rgba(59,42,26,0.2)', borderRadius: '8px', background: '#fff', fontSize: '1rem', color: '#3b2a1a', outline: 'none' }}
@@ -152,9 +152,9 @@ export default function LoginScreen() {
 
           <div style={{ marginBottom: '24px' }}>
             <label style={{ display: 'block', marginBottom: '6px', fontWeight: '600', color: '#6b5a4a', fontSize: '0.8rem', fontFamily: "'Inter', sans-serif", textTransform: 'uppercase', letterSpacing: '0.5px' }}>Password</label>
-            <input 
-              type="password" 
-              value={password} 
+            <input
+              type="password"
+              value={password}
               onChange={e => setPassword(e.target.value)}
               required
               style={{ width: '100%', padding: '14px', border: '1.5px solid rgba(59,42,26,0.2)', borderRadius: '8px', background: '#fff', fontSize: '1rem', color: '#3b2a1a', outline: 'none' }}
@@ -165,9 +165,9 @@ export default function LoginScreen() {
           {!isLoginMode && (
             <div style={{ marginBottom: '24px' }}>
               <label style={{ display: 'block', marginBottom: '6px', fontWeight: '600', color: '#6b5a4a', fontSize: '0.8rem', fontFamily: "'Inter', sans-serif", textTransform: 'uppercase', letterSpacing: '0.5px' }}>Kode Kelas (Opsional)</label>
-              <input 
-                type="text" 
-                value={classCode} 
+              <input
+                type="text"
+                value={classCode}
                 onChange={e => setClassCode(e.target.value)}
                 style={{ width: '100%', padding: '14px', border: '1.5px solid rgba(59,42,26,0.2)', borderRadius: '8px', background: '#fff', fontSize: '1rem', color: '#3b2a1a', outline: 'none' }}
                 placeholder="Contoh: KIMIA-11A"
@@ -175,8 +175,8 @@ export default function LoginScreen() {
             </div>
           )}
 
-          <button 
-            type="submit" 
+          <button
+            type="submit"
             disabled={loading}
             style={{ width: '100%', padding: '16px', backgroundColor: '#2a6f8f', color: '#f4e4c1', border: 'none', borderRadius: '12px', cursor: loading ? 'not-allowed' : 'pointer', fontWeight: 'bold', fontSize: '1.1rem', fontFamily: "'Cinzel Decorative', serif", letterSpacing: '1px', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px' }}
           >

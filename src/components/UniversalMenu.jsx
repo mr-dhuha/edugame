@@ -44,7 +44,7 @@ export default function UniversalMenu({ fsmState }) {
   const submitProfile = async () => {
     if (!supabase) return setModalError('Koneksi database tidak tersedia.');
     if (!modalData.name.trim()) return setModalError('Nama tidak boleh kosong.');
-    
+
     setModalLoading(true);
     setModalError('');
     try {
@@ -52,9 +52,9 @@ export default function UniversalMenu({ fsmState }) {
         .from('cq_students')
         .update({ name: modalData.name })
         .eq('nis', playerState.profile.studentId);
-        
+
       if (error) throw error;
-      
+
       playerModel.setProfile(playerState.profile.studentId, modalData.name);
       setModalLoading(false);
       closeModals();
@@ -71,7 +71,7 @@ export default function UniversalMenu({ fsmState }) {
     if (!supabase) return setModalError('Koneksi database tidak tersedia.');
     if (!modalData.oldPassword || !modalData.newPassword) return setModalError('Harap isi semua kolom.');
     if (modalData.newPassword !== modalData.confirmPassword) return setModalError('Kata sandi baru dan konfirmasi tidak cocok.');
-    
+
     setModalLoading(true);
     setModalError('');
     try {
@@ -82,7 +82,7 @@ export default function UniversalMenu({ fsmState }) {
         .eq('nis', playerState.profile.studentId)
         .eq('password', modalData.oldPassword)
         .single();
-        
+
       if (verifyError || !verifyData) {
         setModalLoading(false);
         return setModalError('Kata sandi lama salah!');
@@ -93,9 +93,9 @@ export default function UniversalMenu({ fsmState }) {
         .from('cq_students')
         .update({ password: modalData.newPassword })
         .eq('nis', playerState.profile.studentId);
-        
+
       if (updateError) throw updateError;
-      
+
       setModalLoading(false);
       closeModals();
       alert('Kata sandi berhasil diperbarui!');
@@ -173,7 +173,7 @@ export default function UniversalMenu({ fsmState }) {
               </>
             ) : (
               <>
-                <h2 className="um-title">Pencapaian Siswa</h2>
+                <h2 className="um-title">Pencapaian murid</h2>
                 <div className="um-stats-content" style={{ display: 'flex', flexDirection: 'column', gap: '16px', marginTop: '12px' }}>
 
                   {/* Profile Header */}
@@ -248,16 +248,16 @@ export default function UniversalMenu({ fsmState }) {
         <div style={{ position: 'fixed', top: 0, left: 0, right: 0, bottom: 0, backgroundColor: 'rgba(0,0,0,0.5)', zIndex: 9999, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
           <div style={{ background: '#fff', padding: '24px', borderRadius: '12px', width: '90%', maxWidth: '400px', boxShadow: '0 4px 20px rgba(0,0,0,0.2)' }}>
             <h3 style={{ margin: '0 0 16px 0', color: '#3b2a1a' }}>{modalType === 'profile' ? 'Ubah Profil' : 'Ubah Kata Sandi'}</h3>
-            
+
             {modalError && <div style={{ color: 'red', marginBottom: '12px', fontSize: '0.9rem' }}>{modalError}</div>}
-            
+
             {modalType === 'profile' && (
               <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
                 <label style={{ fontSize: '0.9rem', color: '#666' }}>Nama Lengkap</label>
-                <input 
-                  type="text" 
-                  value={modalData.name} 
-                  onChange={(e) => setModalData({...modalData, name: e.target.value})}
+                <input
+                  type="text"
+                  value={modalData.name}
+                  onChange={(e) => setModalData({ ...modalData, name: e.target.value })}
                   style={{ padding: '10px', borderRadius: '6px', border: '1px solid #ccc' }}
                 />
               </div>
@@ -266,41 +266,41 @@ export default function UniversalMenu({ fsmState }) {
             {modalType === 'password' && (
               <div style={{ display: 'flex', flexDirection: 'column', gap: '12px' }}>
                 <label style={{ fontSize: '0.9rem', color: '#666' }}>Kata Sandi Lama</label>
-                <input 
-                  type="password" 
-                  value={modalData.oldPassword} 
-                  onChange={(e) => setModalData({...modalData, oldPassword: e.target.value})}
+                <input
+                  type="password"
+                  value={modalData.oldPassword}
+                  onChange={(e) => setModalData({ ...modalData, oldPassword: e.target.value })}
                   style={{ padding: '10px', borderRadius: '6px', border: '1px solid #ccc' }}
                 />
-                
+
                 <label style={{ fontSize: '0.9rem', color: '#666' }}>Kata Sandi Baru</label>
-                <input 
-                  type="password" 
-                  value={modalData.newPassword} 
-                  onChange={(e) => setModalData({...modalData, newPassword: e.target.value})}
+                <input
+                  type="password"
+                  value={modalData.newPassword}
+                  onChange={(e) => setModalData({ ...modalData, newPassword: e.target.value })}
                   style={{ padding: '10px', borderRadius: '6px', border: '1px solid #ccc' }}
                 />
 
                 <label style={{ fontSize: '0.9rem', color: '#666' }}>Konfirmasi Kata Sandi Baru</label>
-                <input 
-                  type="password" 
-                  value={modalData.confirmPassword} 
-                  onChange={(e) => setModalData({...modalData, confirmPassword: e.target.value})}
+                <input
+                  type="password"
+                  value={modalData.confirmPassword}
+                  onChange={(e) => setModalData({ ...modalData, confirmPassword: e.target.value })}
                   style={{ padding: '10px', borderRadius: '6px', border: '1px solid #ccc' }}
                 />
               </div>
             )}
 
             <div style={{ display: 'flex', gap: '12px', marginTop: '24px' }}>
-              <button 
-                onClick={closeModals} 
+              <button
+                onClick={closeModals}
                 style={{ flex: 1, padding: '10px', border: 'none', background: '#ccc', borderRadius: '6px', cursor: 'pointer' }}
                 disabled={modalLoading}
               >
                 Batal
               </button>
-              <button 
-                onClick={modalType === 'profile' ? submitProfile : submitPassword} 
+              <button
+                onClick={modalType === 'profile' ? submitProfile : submitPassword}
                 style={{ flex: 1, padding: '10px', border: 'none', background: '#28a745', color: '#fff', borderRadius: '6px', cursor: 'pointer' }}
                 disabled={modalLoading}
               >

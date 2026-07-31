@@ -82,7 +82,7 @@ export default function ReflectionScreen({ context }) {
       <div style={{ display: 'flex', alignItems: 'center', gap: '16px', marginBottom: '24px', justifyContent: 'center' }}>
         <img src="/img/face5.png" alt="" style={{ width: '64px', height: '64px', objectFit: 'contain' }} />
         <h2 style={{ fontFamily: "'Cinzel Decorative', serif", fontSize: '1.4rem', color: '#2a6f8f', margin: 0, textShadow: '1px 1px 2px rgba(0,0,0,0.1)' }}>
-          Jurnal Siswa
+          Jurnal murid
         </h2>
       </div>
 
@@ -186,15 +186,15 @@ export default function ReflectionScreen({ context }) {
             )}
           </div>
 
-          <button 
+          <button
             onClick={handleFinish}
             disabled={isChatting}
-            style={{ 
-              width: '100%', padding: '16px', 
-              backgroundColor: chatTurns < 3 ? '#b0a69b' : '#2a6f8f', 
-              color: '#fff', 
-              border: 'none', borderRadius: '12px', cursor: isChatting ? 'not-allowed' : 'pointer', 
-              fontFamily: "'Cinzel Decorative', serif", fontSize: '1.1rem', fontWeight: '700', 
+            style={{
+              width: '100%', padding: '16px',
+              backgroundColor: chatTurns < 3 ? '#b0a69b' : '#2a6f8f',
+              color: '#fff',
+              border: 'none', borderRadius: '12px', cursor: isChatting ? 'not-allowed' : 'pointer',
+              fontFamily: "'Cinzel Decorative', serif", fontSize: '1.1rem', fontWeight: '700',
               display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px',
               marginTop: 'auto', letterSpacing: '1px', boxShadow: '0 4px 8px rgba(0,0,0,0.2)'
             }}

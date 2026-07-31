@@ -31,7 +31,8 @@ export class FSMEngine {
       currentDifficulty: null,
       gateQuestionCount: 0,
       totalQuestionsAnswered: 0,
-      pendingAdaptiveAction: null
+      pendingAdaptiveAction: null,
+      seenQuestions: []
     };
   }
 
@@ -45,6 +46,7 @@ export class FSMEngine {
         this.context.currentEpisodeId = payload.episodeId;
         this.context.currentDifficulty = 'Easy';
         this.context.gateQuestionCount = 0;
+        this.context.seenQuestions = [];
         break;
       case STATES.QUESTION_START:
         // Reset per-question tracking if needed

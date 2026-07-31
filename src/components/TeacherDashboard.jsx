@@ -67,8 +67,8 @@ export default function TeacherDashboard() {
 
     const worksheet = XLSX.utils.json_to_sheet(dataToExport);
     const workbook = XLSX.utils.book_new();
-    XLSX.utils.book_append_sheet(workbook, worksheet, "Laporan Siswa");
-    XLSX.writeFile(workbook, "Laporan_Siswa_ChemQuest.xlsx");
+    XLSX.utils.book_append_sheet(workbook, worksheet, "Laporan murid");
+    XLSX.writeFile(workbook, "Laporan_murid_ChemQuest.xlsx");
   };
 
   if (loading) return <div className="td-empty-state">Menganalisis data kelas...</div>;
@@ -82,7 +82,7 @@ export default function TeacherDashboard() {
           <Brain className="td-logo-icon" size={28} />
           <div>
             <h1 className="td-title">ChemQuest Teacher Portal</h1>
-            <p className="td-subtitle">{metrics.overview.className} • {metrics.overview.totalStudents} Siswa</p>
+            <p className="td-subtitle">{metrics.overview.className} • {metrics.overview.totalStudents} murid</p>
           </div>
         </div>
         <button className="td-btn-logout" onClick={handleLogout}>
@@ -97,7 +97,7 @@ export default function TeacherDashboard() {
           <NavBtn id="journey" icon={<Route size={18} />} label="Learning Journey" active={activeTab} set={setActiveTab} />
           <NavBtn id="heatmap" icon={<Grid size={18} />} label="Class Heatmap" active={activeTab} set={setActiveTab} />
           <NavBtn id="diagnosis" icon={<AlertTriangle size={18} />} label="Diagnosis & Misconceptions" active={activeTab} set={setActiveTab} />
-          <NavBtn id="reports" icon={<Users size={18} />} label="Laporan Siswa" active={activeTab} set={setActiveTab} />
+          <NavBtn id="reports" icon={<Users size={18} />} label="Laporan murid" active={activeTab} set={setActiveTab} />
           <NavBtn id="questions" icon={<Database size={18} />} label="Bank Soal" active={activeTab} set={setActiveTab} />
           <NavBtn id="ai" icon={<Brain size={18} />} label="Asisten Pintar & Adaptif" active={activeTab} set={setActiveTab} />
           <NavBtn id="awards" icon={<Trophy size={18} />} label="Reflections & Leaderboard" active={activeTab} set={setActiveTab} />
@@ -157,8 +157,8 @@ export default function TeacherDashboard() {
                         <p style={{ margin: 0, color: '#92400e' }}>{realAiInsight.adaptive}</p>
                       </div>
                       <div className="ai-intervention" style={{ marginTop: '16px' }}>
-                        <strong>Siswa Butuh Perhatian: </strong>
-                        {metrics.overview.studentsNeedIntervention > 0 ? `${metrics.overview.studentsNeedIntervention} Siswa (Lihat Heatmap)` : 'Tidak Ada'}
+                        <strong>murid Butuh Perhatian: </strong>
+                        {metrics.overview.studentsNeedIntervention > 0 ? `${metrics.overview.studentsNeedIntervention} murid (Lihat Heatmap)` : 'Tidak Ada'}
                       </div>
                     </div>
                   )}
@@ -171,7 +171,7 @@ export default function TeacherDashboard() {
           {activeTab === 'journey' && (
             <div className="td-fade-in td-card">
               <h2 className="td-section-title">Student Learning Journey</h2>
-              <p className="td-section-subtitle">Timeline perjalanan per siswa di setiap episode.</p>
+              <p className="td-section-subtitle">Timeline perjalanan per murid di setiap episode.</p>
 
               <div className="td-journey-list">
                 {metrics.learningJourney.map((student, i) => (
@@ -206,7 +206,7 @@ export default function TeacherDashboard() {
           {activeTab === 'heatmap' && (
             <div className="td-fade-in td-card">
               <h2 className="td-section-title">Heatmap Kelas</h2>
-              <p className="td-section-subtitle">Matriks jawaban siswa per pertanyaan untuk identifikasi cepat.</p>
+              <p className="td-section-subtitle">Matriks jawaban murid per pertanyaan untuk identifikasi cepat.</p>
 
               <div className="heatmap-legend">
                 <span className="legend-item"><div className="hm-box correct"></div> Benar</span>
@@ -219,7 +219,7 @@ export default function TeacherDashboard() {
                 <table className="heatmap-table">
                   <thead>
                     <tr>
-                      <th>Siswa</th>
+                      <th>murid</th>
                       {metrics.heatmap.length > 0 && Object.keys(metrics.heatmap[0])
                         .filter(k => k !== 'name')
                         .map(q => <th key={q}>{q.toUpperCase()}</th>)}
@@ -255,7 +255,7 @@ export default function TeacherDashboard() {
                           {m.tag} - {m.title}
                         </span>
                         <span className="misc-count" style={{ fontWeight: 'bold' }}>
-                          {m.count} kejadian ({m.affected.length} siswa)
+                          {m.count} kejadian ({m.affected.length} murid)
                         </span>
                       </div>
                       <div className="misc-bar-bg" style={{ marginTop: '10px' }}>
@@ -267,7 +267,7 @@ export default function TeacherDashboard() {
                         </p>
                       </div>
                       <div className="misc-affected" style={{ marginTop: '10px' }}>
-                        <strong>Siswa Terdampak: </strong> {m.affected.length > 0 ? m.affected.join(', ') : '-'}
+                        <strong>murid Terdampak: </strong> {m.affected.length > 0 ? m.affected.join(', ') : '-'}
                       </div>
                     </div>
                   ))}
@@ -364,7 +364,7 @@ export default function TeacherDashboard() {
             <div className="td-fade-in td-card">
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' }}>
                 <div>
-                  <h2 className="td-section-title">Laporan Lengkap Siswa</h2>
+                  <h2 className="td-section-title">Laporan Lengkap murid</h2>
                   <p className="td-section-subtitle">Daftar roster kelas beserta metrik kinerja individu.</p>
                 </div>
                 <button
@@ -407,7 +407,7 @@ export default function TeacherDashboard() {
                       ))
                     ) : (
                       <tr>
-                        <td colSpan="7" style={{ padding: '20px', textAlign: 'center', color: '#6b5a4a' }}>Belum ada data siswa</td>
+                        <td colSpan="7" style={{ padding: '20px', textAlign: 'center', color: '#6b5a4a' }}>Belum ada data murid</td>
                       </tr>
                     )}
                   </tbody>

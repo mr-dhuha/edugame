@@ -41,7 +41,7 @@ Kondisi	Keputusan Sistem	Dukungan Adaptif
 Hasil 0-1 benar dari 3	Penguatan ulang	Tampilkan kartu konsep, contoh terselesaikan, dan satu soal setara sebelum mengulang level.
 Hasil 2 benar dari 3	Lanjut bersyarat	Lanjut ke level berikutnya dengan satu petunjuk kontekstual atau visual.
 Hasil 3 benar dari 3	Lanjut langsung	Buka level berikutnya tanpa petunjuk serta berikan bonus poin atau badge.
-Level Hard selesai	Refleksi akhir	Murid menuliskan alasan, bukti, atau strategi; sistem merekam ringkasan miskonsepsi.
+Level Hard selesai	Refleksi akhir	siswa menuliskan alasan, bukti, atau strategi; sistem merekam ringkasan miskonsepsi.
 Jawaban salah + keyakinan tinggi	Intervensi miskonsepsi	Tampilkan penjelasan konseptual yang lebih eksplisit dan soal setara.
 Jawaban benar + keyakinan rendah	Penguatan keyakinan	Tampilkan alasan singkat dan tawarkan visual pembuktian sebelum lanjut.
 ID	Level	Misi	Indikator Soal	Bloom / KKO	Materi	Media / Interaksi

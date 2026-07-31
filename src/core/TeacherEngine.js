@@ -4,12 +4,15 @@ export async function fetchTeacherMetrics(class_code = null) {
   if (!supabase) return getEmptyData();
 
   try {
-    let studentQuery = supabase.from('cq_students').select('*').eq('is_active', true);
+    let studentQuery = supabase.from('cq_students').select('*');
     if (class_code) studentQuery = studentQuery.eq('class_code', class_code);
-    const { data: students, error: errS } = await studentQuery;
+    const { data: rawStudents, error: errS } = await studentQuery;
 
     if (errS) throw errS;
-    if (!students || students.length === 0) return getEmptyData();
+    if (!rawStudents || rawStudents.length === 0) return getEmptyData();
+
+    const students = rawStudents.filter(s => s.is_active !== false);
+    if (students.length === 0) return getEmptyData();
 
     const studentIds = students.map(s => s.nis);
 
@@ -169,14 +172,14 @@ export async function fetchTeacherMetrics(class_code = null) {
 
     // Misconceptions
     const miscDictionary = {
-      'M-ARR-01': { title: 'Kekeliruan Identifikasi Arrhenius', desc: 'Siswa mengira semua senyawa yang memiliki atom Hidrogen otomatis adalah asam (seperti CH4 atau NH3).' },
-      'M-ARR-02': { title: 'Miskonsepsi Syarat Pelarut', desc: 'Siswa lupa bahwa teori Arrhenius mutlak membutuhkan air sebagai pelarut agar ionisasi terjadi.' },
+      'M-ARR-01': { title: 'Kekeliruan Identifikasi Arrhenius', desc: 'murid mengira semua senyawa yang memiliki atom Hidrogen otomatis adalah asam (seperti CH4 atau NH3).' },
+      'M-ARR-02': { title: 'Miskonsepsi Syarat Pelarut', desc: 'murid lupa bahwa teori Arrhenius mutlak membutuhkan air sebagai pelarut agar ionisasi terjadi.' },
       'M-BL-01': { title: 'Kebingungan Transfer Proton', desc: 'Kesulitan mengidentifikasi spesi mana yang bertindak sebagai donor dan akseptor proton dalam persamaan kesetimbangan.' },
-      'M-LEW-01': { title: 'Keterbalikan Konsep Lewis', desc: 'Siswa sering terbalik mendefinisikan Asam Lewis (akseptor pasangan elektron) menjadi donor elektron karena terpaku pada proton (H+).' },
+      'M-LEW-01': { title: 'Keterbalikan Konsep Lewis', desc: 'murid sering terbalik mendefinisikan Asam Lewis (akseptor pasangan elektron) menjadi donor elektron karena terpaku pada proton (H+).' },
       'M-PH-01': { title: 'Skala Logaritmik vs Linier', desc: 'Pemahaman yang salah bahwa selisih 1 unit pH setara dengan selisih konsentrasi 1x lipat, bukan eksponensial basis 10.' },
       'M-KONJ-01': { title: 'Sifat Asam-Basa Konjugasi', desc: 'Asumsi intuitif yang keliru bahwa asam yang kuat akan menghasilkan basa konjugasi yang juga kuat (seharusnya sangat lemah).' },
-      'M-TEORI-02': { title: 'Keterbatasan Teori', desc: 'Siswa menganggap hanya ada satu kebenaran mutlak; mereka kebingungan saat suatu spesi (seperti NH3) tidak bisa dijelaskan dengan Arrhenius tapi bisa dengan Brønsted-Lowry.' },
-      'M-CAKUP-01': { title: 'Cakupan Universalitas Teori', desc: 'Kurangnya pemahaman hierarki teori; siswa tidak menyadari bahwa semua asam-basa Brønsted-Lowry pasti merupakan asam-basa Lewis, tetapi tidak sebaliknya.' }
+      'M-TEORI-02': { title: 'Keterbatasan Teori', desc: 'murid menganggap hanya ada satu kebenaran mutlak; mereka kebingungan saat suatu spesi (seperti NH3) tidak bisa dijelaskan dengan Arrhenius tapi bisa dengan Brønsted-Lowry.' },
+      'M-CAKUP-01': { title: 'Cakupan Universalitas Teori', desc: 'Kurangnya pemahaman hierarki teori; murid tidak menyadari bahwa semua asam-basa Brønsted-Lowry pasti merupakan asam-basa Lewis, tetapi tidak sebaliknya.' }
     };
 
     for (let tag in miscMap) {
@@ -216,7 +219,7 @@ export async function fetchTeacherMetrics(class_code = null) {
     if (metrics.misconceptions.length > 0) {
       const topM = metrics.misconceptions[0];
       metrics.aiInsightFull = {
-        sentiment: `Ditemukan pola miskonsepsi "${topM.tag}". Siswa seperti ${topM.affected.join(', ')} kesulitan membedakan konsep dasarnya.`,
+        sentiment: `Ditemukan pola miskonsepsi "${topM.tag}". murid seperti ${topM.affected.join(', ')} kesulitan membedakan konsep dasarnya.`,
         adaptive: "Sistem mengaktifkan rekomendasi adaptif: Memprioritaskan soal pendukung dan menyediakan scaffolding tambahan pada topik ini."
       };
       metrics.aiInsight = {
@@ -226,7 +229,7 @@ export async function fetchTeacherMetrics(class_code = null) {
         interventions: topM.affected.slice(0, 3)
       };
     } else {
-      metrics.aiInsightFull = { sentiment: "Data belum cukup atau kinerja siswa sangat baik.", adaptive: "Rekomendasi belum diperlukan." };
+      metrics.aiInsightFull = { sentiment: "Data belum cukup atau kinerja murid sangat baik.", adaptive: "Rekomendasi belum diperlukan." };
       metrics.aiInsight = { headline: "Semua Normal", detail: "Pemahaman kelas stabil", recommendations: ["Lanjutkan misi"], interventions: [] };
     }
 
@@ -283,8 +286,8 @@ function getEmptyData() {
       criticalThinker: { name: '-', detail: 'HOTS', icon: 'gold' },
       mostPersistent: { name: '-', detail: 'Pantang Menyerah', icon: 'silver' }
     },
-    aiInsightFull: { sentiment: "Belum ada data analitik dari database.", adaptive: "Sistem menunggu siswa menyelesaikan kuis." },
-    aiInsight: { headline: "Menunggu Data", detail: "Siswa belum aktif.", recommendations: [], interventions: [] }
+    aiInsightFull: { sentiment: "Belum ada data analitik dari database.", adaptive: "Sistem menunggu murid menyelesaikan kuis." },
+    aiInsight: { headline: "Menunggu Data", detail: "murid belum aktif.", recommendations: [], interventions: [] }
   };
 }
 
@@ -295,7 +298,7 @@ export async function approveStudent(nis) {
     if (error) throw error;
     return true;
   } catch (error) {
-    console.error('Gagal menyetujui siswa:', error);
+    console.error('Gagal menyetujui murid:', error);
     return false;
   }
 }

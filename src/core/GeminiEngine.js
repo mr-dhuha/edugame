@@ -20,12 +20,12 @@ export async function evaluateReflectionWithGemini(studentText, episodeData) {
         },
         feedback: {
           type: SchemaType.STRING,
-          description: "Feedback singkat dan konstruktif untuk siswa (maksimal 2 kalimat) sebagai seorang guru kimia."
+          description: "Feedback singkat dan konstruktif untuk murid (maksimal 2 kalimat) sebagai seorang guru kimia."
         },
         matchedKeywords: {
           type: SchemaType.ARRAY,
           items: { type: SchemaType.STRING },
-          description: "Kata-kata kunci kimia relevan yang berhasil diidentifikasi dari teks siswa."
+          description: "Kata-kata kunci kimia relevan yang berhasil diidentifikasi dari teks murid."
         }
       },
       required: ["score", "feedback", "matchedKeywords"]
@@ -44,15 +44,15 @@ export async function evaluateReflectionWithGemini(studentText, episodeData) {
 Topik Episode: ${episodeData.title}
 Konsep Utama: ${episodeData.concepts.join(", ")}
 
-Teks Refleksi Siswa:
+Teks Refleksi murid:
 "${studentText}"
 
-Evaluasi pemahaman siswa berdasarkan teks di atas. Jika teks terlalu pendek atau ngawur, berikan skor 0. Jika ada miskonsepsi, berikan skor rendah.`;
+Evaluasi pemahaman murid berdasarkan teks di atas. Jika teks terlalu pendek atau ngawur, berikan skor 0. Jika ada miskonsepsi, berikan skor rendah.`;
 
     const result = await model.generateContent(prompt);
     const response = result.response;
     const textResult = response.text();
-    
+
     return JSON.parse(textResult);
 
   } catch (error) {
