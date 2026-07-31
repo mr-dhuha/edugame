@@ -32,6 +32,16 @@ export default function GameApp() {
       if (savedPlayer) {
         playerModel.deserialize(savedPlayer);
         setPlayerState(playerModel.exportState());
+        
+        // Force background sync to heal data (like missing episodeStats)
+        const currentStudentId = playerModel.getProfile().studentId;
+        if (currentStudentId) {
+          playerModel.syncFromSupabase(currentStudentId, supabase).then(() => {
+            setPlayerState(playerModel.exportState());
+            // Memaksa update state localStorage dengan data yang sudah di-heal
+            localStorage.setItem('chemquest_player', playerModel.serialize());
+          });
+        }
       }
       
       const savedFsm = localStorage.getItem('chemquest_fsm');
