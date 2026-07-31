@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import storyDialogs from '../data/storyDialogs.json';
+import { audioEngine } from '../core/AudioEngine';
 import './AnimatedDialog.css';
 
 export default function AnimatedDialog({ dialogs, onComplete }) {
@@ -18,13 +19,20 @@ export default function AnimatedDialog({ dialogs, onComplete }) {
     const text = currentDialog.text;
     
     // Typewriter effect
+    const typingAudio = audioEngine.playSFX('typing');
     const interval = setInterval(() => {
       setDisplayedText(text.substring(0, i + 1));
       i++;
-      if (i >= text.length) clearInterval(interval);
+      if (i >= text.length) {
+        clearInterval(interval);
+        if (typingAudio) typingAudio.pause();
+      }
     }, 30);
 
-    return () => clearInterval(interval);
+    return () => {
+      clearInterval(interval);
+      if (typingAudio) typingAudio.pause();
+    };
   }, [currentIndex, currentDialog]);
 
   const handleNext = () => {

@@ -3,6 +3,7 @@ import { fsm, STATES } from '../core/FSMEngine';
 import { getNextDifficulty } from '../core/AdaptiveEngine';
 import { playerModel } from '../core/PlayerModel';
 import { AIClient } from '../core/AIClient';
+import { audioEngine } from '../core/AudioEngine';
 
 // --- Komponen Typewriter Sederhana ---
 const TypewriterText = ({ text, speed = 30 }) => {
@@ -12,13 +13,20 @@ const TypewriterText = ({ text, speed = 30 }) => {
     if (!text) return;
     
     let i = 0;
+    const typingAudio = audioEngine.playSFX('typing');
     const chars = Array.from(text);
     const interval = setInterval(() => {
       i++;
       setDisplayed(chars.slice(0, i).join(''));
-      if (i >= chars.length) clearInterval(interval);
+      if (i >= chars.length) {
+        clearInterval(interval);
+        if (typingAudio) typingAudio.pause();
+      }
     }, speed);
-    return () => clearInterval(interval);
+    return () => {
+      clearInterval(interval);
+      if (typingAudio) typingAudio.pause();
+    };
   }, [text, speed]);
   return <span>{displayed}</span>;
 };

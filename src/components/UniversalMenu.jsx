@@ -18,19 +18,19 @@ export default function UniversalMenu({ fsmState }) {
   const [modalLoading, setModalLoading] = useState(false);
 
   // Audio State
-  const [musicEnabled, setMusicEnabled] = useState(audioEngine.musicEnabled);
-  const [sfxEnabled, setSfxEnabled] = useState(audioEngine.sfxEnabled);
+  const [bgmVol, setBgmVol] = useState(audioEngine.bgmVolume);
+  const [sfxVol, setSfxVol] = useState(audioEngine.sfxVolume);
 
-  const toggleMusic = () => {
-    const newVal = !musicEnabled;
-    setMusicEnabled(newVal);
-    audioEngine.toggleMusic(newVal);
+  const handleBgmChange = (e) => {
+    const val = parseFloat(e.target.value);
+    setBgmVol(val);
+    audioEngine.setBgmVolume(val);
   };
 
-  const toggleSfx = () => {
-    const newVal = !sfxEnabled;
-    setSfxEnabled(newVal);
-    audioEngine.toggleSFX(newVal);
+  const handleSfxChange = (e) => {
+    const val = parseFloat(e.target.value);
+    setSfxVol(val);
+    audioEngine.setSfxVolume(val);
   };
 
   // Don't show menu on Login or Init
@@ -180,22 +180,29 @@ export default function UniversalMenu({ fsmState }) {
                 <div style={{ marginTop: '20px', padding: '16px', background: 'rgba(255,255,255,0.6)', borderRadius: '12px', border: '1px solid rgba(59,42,26,0.1)' }}>
                   <h3 style={{ margin: '0 0 12px 0', fontSize: '0.9rem', color: '#3b2a1a', textTransform: 'uppercase', fontFamily: "'Inter', sans-serif" }}>Pengaturan Audio</h3>
                   
-                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '12px' }}>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px', color: '#6b5a4a', fontSize: '0.9rem', fontWeight: 'bold' }}>
-                      {musicEnabled ? <Volume2 size={18} /> : <VolumeX size={18} />} Musik Latar
+                  <div style={{ display: 'flex', flexDirection: 'column', gap: '12px', marginBottom: '16px' }}>
+                    <div>
+                      <div style={{ display: 'flex', justifyContent: 'space-between', color: '#6b5a4a', fontSize: '0.9rem', fontWeight: 'bold', marginBottom: '4px' }}>
+                        <span><Volume2 size={16} style={{ verticalAlign: 'text-bottom' }}/> Musik Latar</span>
+                        <span>{Math.round(bgmVol * 100)}%</span>
+                      </div>
+                      <input 
+                        type="range" min="0" max="1" step="0.01" 
+                        value={bgmVol} onChange={handleBgmChange} 
+                        style={{ width: '100%', cursor: 'pointer' }} 
+                      />
                     </div>
-                    <button onClick={toggleMusic} style={{ padding: '6px 16px', borderRadius: '20px', border: 'none', background: musicEnabled ? '#2a6f8f' : '#ccc', color: '#fff', fontWeight: 'bold', cursor: 'pointer', transition: 'background 0.3s' }}>
-                      {musicEnabled ? 'ON' : 'OFF'}
-                    </button>
-                  </div>
-
-                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px', color: '#6b5a4a', fontSize: '0.9rem', fontWeight: 'bold' }}>
-                      {sfxEnabled ? <Volume2 size={18} /> : <VolumeX size={18} />} Efek Suara
+                    <div>
+                      <div style={{ display: 'flex', justifyContent: 'space-between', color: '#6b5a4a', fontSize: '0.9rem', fontWeight: 'bold', marginBottom: '4px' }}>
+                        <span><Volume2 size={16} style={{ verticalAlign: 'text-bottom' }}/> Efek Suara</span>
+                        <span>{Math.round(sfxVol * 100)}%</span>
+                      </div>
+                      <input 
+                        type="range" min="0" max="1" step="0.01" 
+                        value={sfxVol} onChange={handleSfxChange} 
+                        style={{ width: '100%', cursor: 'pointer' }} 
+                      />
                     </div>
-                    <button onClick={toggleSfx} style={{ padding: '6px 16px', borderRadius: '20px', border: 'none', background: sfxEnabled ? '#d4af37' : '#ccc', color: '#fff', fontWeight: 'bold', cursor: 'pointer', transition: 'background 0.3s' }}>
-                      {sfxEnabled ? 'ON' : 'OFF'}
-                    </button>
                   </div>
                 </div>
 

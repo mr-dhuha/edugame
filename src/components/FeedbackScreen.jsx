@@ -7,8 +7,8 @@ import { eventBus, EVENTS } from '../core/EventBus';
 import { playerModel } from '../core/PlayerModel';
 import Explainer3D from './3d/Explainer3D';
 import { Star, Lightbulb, AlertTriangle } from 'lucide-react';
-
 import { AIClient } from '../core/AIClient';
+
 
 // --- Komponen Typewriter Sederhana ---
 const TypewriterText = ({ text, speed = 30, onComplete }) => {
@@ -18,16 +18,21 @@ const TypewriterText = ({ text, speed = 30, onComplete }) => {
     if (!text) return;
     
     let i = 0;
+    const typingAudio = audioEngine.playSFX('typing');
     const chars = Array.from(text);
     const interval = setInterval(() => {
       i++;
       setDisplayed(chars.slice(0, i).join(''));
       if (i >= chars.length) {
         clearInterval(interval);
+        if (typingAudio) typingAudio.pause();
         if (onComplete) onComplete();
       }
     }, speed);
-    return () => clearInterval(interval);
+    return () => {
+      clearInterval(interval);
+      if (typingAudio) typingAudio.pause();
+    };
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [text, speed]);
   return <span>{displayed}</span>;

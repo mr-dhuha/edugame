@@ -1,17 +1,23 @@
 class AudioEngine {
   constructor() {
-    this.musicEnabled = localStorage.getItem('cq_music_enabled') !== 'false';
-    this.sfxEnabled = localStorage.getItem('cq_sfx_enabled') !== 'false';
+    this.musicEnabled = true; // Always enabled, volume 0 means muted
+    this.sfxEnabled = true;
     this.bgmBlocked = false;
     
     this.activeSfxCount = 0;
-    this.normalBgmVolume = 0.05;
-    this.duckedBgmVolume = 0.01;
+    
+    const savedBgmVol = localStorage.getItem('cq_bgm_vol');
+    const savedSfxVol = localStorage.getItem('cq_sfx_vol');
+    this.bgmVolume = savedBgmVol !== null ? parseFloat(savedBgmVol) : 0.5; // Default slider 50%
+    this.sfxVolume = savedSfxVol !== null ? parseFloat(savedSfxVol) : 1.0;
+    
+    this.maxBgmMultiplier = 0.6; // Baseline max 60%
+    this.duckedBgmVolume = this.bgmVolume * 0.2;
     
     // Load Audio Objects
     this.bgm = new Audio('/audio/jonasblakewood-tropical-533862.mp3');
     this.bgm.loop = true;
-    this.bgm.volume = this.normalBgmVolume; // Keep background music very soft
+    this.bgm.volume = this.bgmVolume * this.maxBgmMultiplier;
 
     this.sfx = {
       click: new Audio('/audio/creatorshome-select-001-337218.mp3'),
@@ -24,7 +30,7 @@ class AudioEngine {
 
     // Preload SFX
     Object.values(this.sfx).forEach(audio => {
-      audio.volume = 1.0;
+      audio.volume = this.sfxVolume;
     });
 
     // Unlock audio on first user interaction
@@ -38,24 +44,38 @@ class AudioEngine {
   }
 
   // --- SETTINGS ---
-  toggleMusic(enabled) {
-    this.musicEnabled = enabled;
-    localStorage.setItem('cq_music_enabled', enabled);
-    if (enabled) {
-      this.playBGM();
+  setBgmVolume(vol) {
+    this.bgmVolume = parseFloat(vol);
+    this.duckedBgmVolume = this.bgmVolume * 0.2;
+    localStorage.setItem('cq_bgm_vol', this.bgmVolume);
+    
+    const actualVolume = this.bgmVolume * this.maxBgmMultiplier;
+    const actualDucked = this.duckedBgmVolume * this.maxBgmMultiplier;
+
+    if (this.activeSfxCount === 0) {
+      this.bgm.volume = actualVolume;
     } else {
+      this.bgm.volume = actualDucked;
+    }
+    
+    if (this.bgmVolume > 0 && this.bgm.paused && !this.bgmBlocked) {
+      this.playBGM();
+    } else if (this.bgmVolume === 0) {
       this.stopBGM();
     }
   }
 
-  toggleSFX(enabled) {
-    this.sfxEnabled = enabled;
-    localStorage.setItem('cq_sfx_enabled', enabled);
+  setSfxVolume(vol) {
+    this.sfxVolume = parseFloat(vol);
+    localStorage.setItem('cq_sfx_vol', this.sfxVolume);
+    Object.values(this.sfx).forEach(audio => {
+      audio.volume = this.sfxVolume;
+    });
   }
 
   // --- PLAYBACK ---
   playBGM() {
-    if (this.musicEnabled) {
+    if (this.bgmVolume > 0) {
       // Browser might block this if no user interaction yet, handle gracefully
       this.bgm.play().then(() => {
         this.bgmBlocked = false;
@@ -71,7 +91,7 @@ class AudioEngine {
   }
 
   playSFX(key) {
-    if (!this.sfxEnabled) return;
+    if (this.sfxVolume <= 0) return;
     
     const audio = this.sfx[key];
     if (audio) {
@@ -81,8 +101,8 @@ class AudioEngine {
       
       // Audio Ducking (Auto Low Volume)
       this.activeSfxCount++;
-      if (this.musicEnabled && this.bgm) {
-        this.bgm.volume = this.duckedBgmVolume;
+      if (this.bgmVolume > 0 && this.bgm) {
+        this.bgm.volume = this.duckedBgmVolume * this.maxBgmMultiplier;
       }
       
       let restored = false;
@@ -90,8 +110,8 @@ class AudioEngine {
         if (restored) return;
         restored = true;
         this.activeSfxCount = Math.max(0, this.activeSfxCount - 1);
-        if (this.activeSfxCount === 0 && this.musicEnabled && this.bgm) {
-          this.bgm.volume = this.normalBgmVolume;
+        if (this.activeSfxCount === 0 && this.bgmVolume > 0 && this.bgm) {
+          this.bgm.volume = this.bgmVolume * this.maxBgmMultiplier;
         }
       };
       

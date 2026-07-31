@@ -4,7 +4,7 @@ import { LogOut, LayoutDashboard, Route, Grid, AlertTriangle, Brain, Trophy, Use
 import { fetchTeacherMetrics, toggleStudentStatus } from '../core/TeacherEngine';
 import { AIClient } from '../core/AIClient';
 import QuestionManager from './QuestionManager';
-import { ScatterChart, Scatter, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Radar, RadarChart, PolarGrid, PolarAngleAxis, PolarRadiusAxis, BarChart, Bar } from 'recharts';
+import { ScatterChart, Scatter, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Radar, RadarChart, PolarGrid, PolarAngleAxis, PolarRadiusAxis, BarChart, Bar, Label, LabelList } from 'recharts';
 import * as XLSX from 'xlsx';
 import questionsData from '../data/questions.json';
 import { supabase } from '../core/SupabaseClient';
@@ -18,13 +18,13 @@ export default function TeacherDashboard() {
   const [realAiInsight, setRealAiInsight] = useState(null);
   const [isAiLoading, setIsAiLoading] = useState(false);
   const [modalConfig, setModalConfig] = useState(null);
-  
+
   const [heatmapSort, setHeatmapSort] = useState('asc');
   const [heatmapStatusFilter, setHeatmapStatusFilter] = useState('all');
   const [heatmapSearch, setHeatmapSearch] = useState('');
   const [selectedQuestionModal, setSelectedQuestionModal] = useState(null);
   const [isLoadingQuestion, setIsLoadingQuestion] = useState(false);
-  
+
   const [reportSearchTerm, setReportSearchTerm] = useState('');
   const [reportSortBy, setReportSortBy] = useState('score_desc');
   const [reportStatusFilter, setReportStatusFilter] = useState('all');
@@ -45,7 +45,7 @@ export default function TeacherDashboard() {
         try {
           const cachedAi = JSON.parse(cachedAiStr);
           setRealAiInsight(cachedAi.data);
-        } catch(e) {
+        } catch (e) {
           console.error('Failed to parse cached AI insight', e);
         }
       }
@@ -61,8 +61,8 @@ export default function TeacherDashboard() {
     setModalConfig({
       isOpen: true,
       title: currentStatus ? 'Nonaktifkan Murid?' : 'Aktifkan Murid?',
-      message: currentStatus 
-        ? 'Yakin ingin menonaktifkan murid ini? Mereka tidak akan bisa masuk ke dalam game sementara waktu.' 
+      message: currentStatus
+        ? 'Yakin ingin menonaktifkan murid ini? Mereka tidak akan bisa masuk ke dalam game sementara waktu.'
         : 'Yakin ingin mengaktifkan kembali murid ini sehingga bisa bermain kembali?',
       onConfirm: async () => {
         setModalConfig(null);
@@ -92,7 +92,7 @@ export default function TeacherDashboard() {
       };
       const result = await AIClient.generateDashboardInsights(classData);
       setRealAiInsight(result);
-      
+
       const sessionStr = localStorage.getItem('teacherSession');
       if (sessionStr) {
         const sessionData = JSON.parse(sessionStr);
@@ -144,13 +144,13 @@ export default function TeacherDashboard() {
   const handleViewQuestion = async (qId) => {
     setIsLoadingQuestion(true);
     setSelectedQuestionModal({ id: qId, loading: true });
-    
+
     let qData = questionsData.find(q => q.id === qId);
     if (!qData && supabase) {
       try {
         const { data } = await supabase.from('questions').select('*').eq('id', qId).single();
         if (data) qData = data;
-      } catch(e) {
+      } catch (e) {
         console.error(e);
       }
     }
@@ -165,23 +165,35 @@ export default function TeacherDashboard() {
 
   const scoreDistributionData = useMemo(() => {
     if (!metrics || !metrics.studentsList) return [];
-    const dist = { '0-499': 0, '500-999': 0, '1000-1499': 0, '1500+': 0 };
+    let ranges = { '0-59': 0, '60-74': 0, '75-89': 0, '90-100': 0 };
     metrics.studentsList.forEach(s => {
-      if (s.score < 500) dist['0-499']++;
-      else if (s.score < 1000) dist['500-999']++;
-      else if (s.score < 1500) dist['1000-1499']++;
-      else dist['1500+']++;
+      if (s.score < 60) ranges['0-59']++;
+      else if (s.score < 75) ranges['60-74']++;
+      else if (s.score < 90) ranges['75-89']++;
+      else ranges['90-100']++;
     });
-    return [
-      { range: '0-499', count: dist['0-499'] },
-      { range: '500-999', count: dist['500-999'] },
-      { range: '1000-1499', count: dist['1000-1499'] },
-      { range: '1500+', count: dist['1500+'] }
-    ];
+    return Object.keys(ranges).map(k => ({ range: k, count: ranges[k] }));
   }, [metrics]);
 
-  if (loading) return <div className="td-empty-state">Menganalisis data kelas...</div>;
-  if (!metrics) return <div className="td-empty-state">Gagal memuat data.</div>;
+  if (loading) return (
+    <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', height: '100vh', backgroundColor: '#f8f4e6', color: '#2a6f8f' }}>
+      <Brain className="spin-animation" size={48} style={{ marginBottom: '16px', color: '#2a6f3f' }} />
+      <h2 style={{ fontFamily: "'Cinzel Decorative', serif", margin: '0 0 8px 0' }}>ChemQuest Teacher Portal</h2>
+      <p style={{ fontSize: '1.1rem', margin: 0, opacity: 0.8 }}>Menganalisis data kelas...</p>
+      <style>{`
+        @keyframes spin { 100% { transform: rotate(360deg); } }
+        .spin-animation { animation: spin 2s linear infinite; }
+      `}</style>
+    </div>
+  );
+  if (!metrics) return (
+    <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', height: '100vh', backgroundColor: '#f8f4e6' }}>
+      <div style={{ textAlign: 'center', color: '#dc3545' }}>
+        <AlertTriangle size={48} style={{ marginBottom: '16px' }} />
+        <h2>Gagal memuat data kelas.</h2>
+      </div>
+    </div>
+  );
 
   return (
     <div className="td-container">
@@ -218,7 +230,7 @@ export default function TeacherDashboard() {
             <div className="td-fade-in">
               <div className="td-stats-grid">
                 <StatCard label="Class Progress" value={`${metrics.overview.classProgressPct}%`} icon={<TrendingUp />} color="var(--primary)" />
-                <StatCard label="Average XP" value={metrics.overview.averageScore} icon={<Trophy />} color="var(--success)" />
+                <StatCard label="Rata-rata Skor" value={metrics.overview.averageScore} icon={<Trophy />} color="var(--success)" />
                 <StatCard label="Episode Completion" value={`${metrics.overview.episodeCompletionPct}%`} icon={<CheckCircle />} color="var(--info)" />
                 <StatCard label="Need Intervention" value={metrics.overview.studentsNeedIntervention} icon={<AlertCircle />} color="var(--danger)" />
               </div>
@@ -226,6 +238,7 @@ export default function TeacherDashboard() {
               <div className="td-grid-2">
                 <div className="td-card">
                   <h3 className="td-card-title">Progress Peta Episode</h3>
+                  <p className="td-section-subtitle" style={{ marginTop: '-16px', marginBottom: '16px', fontSize: '0.85rem' }}>Rata-rata tingkat penyelesaian seluruh kelas pada setiap episode.</p>
                   <div className="td-episode-progress">
                     {metrics.episodeProgress.map(ep => (
                       <div key={ep.id} className="td-ep-row">
@@ -264,7 +277,7 @@ export default function TeacherDashboard() {
                         <p style={{ margin: 0, color: '#92400e' }}>{realAiInsight.adaptive}</p>
                       </div>
                       <div className="ai-intervention" style={{ marginTop: '16px' }}>
-                        <strong>murid Butuh Perhatian: </strong>
+                        <strong>Murid Butuh Perhatian: </strong>
                         {metrics.overview.studentsNeedIntervention > 0 ? `${metrics.overview.studentsNeedIntervention} murid (Lihat Heatmap)` : 'Tidak Ada'}
                       </div>
                       <div style={{ marginTop: '16px', textAlign: 'right' }}>
@@ -284,25 +297,32 @@ export default function TeacherDashboard() {
               {/* DISTRIBUSI & PERHATIAN */}
               <div className="td-grid-2" style={{ marginTop: '24px' }}>
                 <div className="td-card">
-                  <h3 className="td-card-title">Distribusi Skor Mastery</h3>
-                  <div style={{ height: '220px', width: '100%', marginTop: '16px' }}>
+                  <h3 className="td-card-title">Distribusi Skor Penguasaan (0-100)</h3>
+                  <p className="td-section-subtitle" style={{ marginTop: '-16px', marginBottom: '16px', fontSize: '0.85rem' }}>Menunjukkan jumlah murid yang berada pada rentang skor tertentu.</p>
+                  <div style={{ height: '240px', width: '100%', marginTop: '16px', paddingBottom: '16px' }}>
                     <ResponsiveContainer>
-                      <BarChart data={scoreDistributionData} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
+                      <BarChart data={scoreDistributionData} margin={{ top: 25, right: 10, left: 10, bottom: 20 }}>
                         <CartesianGrid strokeDasharray="3 3" vertical={false} />
-                        <XAxis dataKey="range" tick={{ fontSize: 12, fill: '#6b5a4a' }} axisLine={false} tickLine={false} />
-                        <YAxis tick={{ fontSize: 12, fill: '#6b5a4a' }} axisLine={false} tickLine={false} />
+                        <XAxis dataKey="range" tick={{ fontSize: 12, fill: '#6b5a4a' }} axisLine={false} tickLine={false}>
+                          <Label value="Rentang Skor Murid" offset={-15} position="insideBottom" style={{ fontSize: '0.8rem', fill: '#6b5a4a', fontWeight: 'bold' }} />
+                        </XAxis>
+                        <YAxis tick={{ fontSize: 12, fill: '#6b5a4a' }} axisLine={false} tickLine={false}>
+                          <Label value="Jumlah Murid" angle={-90} position="insideLeft" offset={-10} style={{ fontSize: '0.8rem', fill: '#6b5a4a', fontWeight: 'bold' }} />
+                        </YAxis>
                         <Tooltip cursor={{ fill: 'rgba(42,111,143,0.05)' }} contentStyle={{ borderRadius: '8px', border: 'none', boxShadow: '0 4px 12px rgba(0,0,0,0.1)' }} />
-                        <Bar dataKey="count" fill="#2a6f8f" radius={[6, 6, 0, 0]} name="Jumlah Siswa" />
+                        <Bar dataKey="count" fill="#2a6f8f" radius={[6, 6, 0, 0]} name="Jumlah Murid">
+                          <LabelList dataKey="count" position="top" style={{ fill: '#2a6f8f', fontSize: '13px', fontWeight: 'bold' }} formatter={(value) => value > 0 ? `${value} murid` : ''} />
+                        </Bar>
                       </BarChart>
                     </ResponsiveContainer>
                   </div>
                 </div>
 
                 <div className="td-card">
-                  <h3 className="td-card-title">Siswa Butuh Perhatian (Skor &lt; 70)</h3>
+                  <h3 className="td-card-title">Siswa Butuh Perhatian (Intervensi)</h3>
                   <div style={{ marginTop: '16px', display: 'flex', flexDirection: 'column', gap: '12px', maxHeight: '220px', overflowY: 'auto', paddingRight: '8px' }}>
                     {(() => {
-                      const needsAttention = metrics.studentsList.filter(s => s.score < 70).sort((a,b) => a.score - b.score);
+                      const needsAttention = metrics.studentsList.filter(s => s.needsIntervention).sort((a, b) => a.score - b.score);
                       if (needsAttention.length > 0) {
                         return needsAttention.map((s, i) => (
                           <div key={i} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '12px', backgroundColor: 'rgba(220,53,69,0.05)', borderRadius: '8px', border: '1px solid rgba(220,53,69,0.1)' }}>
@@ -312,7 +332,7 @@ export default function TeacherDashboard() {
                             </div>
                             <div style={{ textAlign: 'right' }}>
                               <span style={{ fontSize: '1.2rem', fontWeight: 'bold', color: '#dc3545' }}>{s.score}</span>
-                              <span style={{ display: 'block', fontSize: '0.75rem', color: '#dc3545' }}>Total XP</span>
+                              <span style={{ display: 'block', fontSize: '0.75rem', color: '#dc3545' }}>Skor Akhir</span>
                             </div>
                           </div>
                         ));
@@ -328,6 +348,26 @@ export default function TeacherDashboard() {
                   </div>
                 </div>
               </div>
+
+              {/* RADAR CHART KOGNITIF (BLOOM) */}
+              <div className="td-grid-2" style={{ marginTop: '24px' }}>
+                <div className="td-card" style={{ gridColumn: '1 / -1' }}>
+                  <h3 className="td-card-title">Profil Kognitif Kelas (Taksonomi Bloom)</h3>
+                  <p className="td-section-subtitle" style={{ marginTop: '-16px', marginBottom: '16px', fontSize: '0.85rem' }}>Mengukur tingkat keberhasilan kelas berdasarkan level kognitif pertanyaan C1 hingga C6.</p>
+                  <div style={{ width: '100%', height: 350 }}>
+                    <ResponsiveContainer>
+                      <RadarChart cx="50%" cy="50%" outerRadius="80%" data={metrics.bloomData}>
+                        <PolarGrid stroke="#e2d3b3" />
+                        <PolarAngleAxis dataKey="subject" tick={{ fontSize: 12, fill: '#3b2a1a', fontWeight: 'bold' }} />
+                        <PolarRadiusAxis angle={30} domain={[0, 100]} tick={{ fill: '#6b5a4a' }} />
+                        <Radar name="Success Rate (%)" dataKey="A" stroke="#2a6f3f" strokeWidth={2} fill="#2a6f3f" fillOpacity={0.4} />
+                        <Tooltip contentStyle={{ borderRadius: '8px', border: 'none', boxShadow: '0 4px 12px rgba(0,0,0,0.1)' }} />
+                      </RadarChart>
+                    </ResponsiveContainer>
+                  </div>
+                </div>
+              </div>
+
             </div>
           )}
 
@@ -340,9 +380,9 @@ export default function TeacherDashboard() {
                   <p className="td-section-subtitle">Matriks jawaban murid per pertanyaan untuk identifikasi cepat.</p>
                 </div>
                 <div style={{ display: 'flex', gap: '12px' }}>
-                  <input 
-                    type="text" 
-                    placeholder="Cari murid..." 
+                  <input
+                    type="text"
+                    placeholder="Cari murid..."
                     value={heatmapSearch}
                     onChange={(e) => setHeatmapSearch(e.target.value)}
                     style={{ padding: '8px', borderRadius: '6px', border: '1px solid #ccc', minWidth: '150px' }}
@@ -358,6 +398,12 @@ export default function TeacherDashboard() {
                     <option value="active">Aktif Saja</option>
                     <option value="inactive">Nonaktif Saja</option>
                   </select>
+                  <button
+                    onClick={handleDownloadXLSX}
+                    style={{ display: 'flex', alignItems: 'center', gap: '8px', padding: '8px 16px', backgroundColor: '#2a6f3f', color: '#fff', border: 'none', borderRadius: '6px', cursor: 'pointer', fontWeight: 'bold' }}
+                  >
+                    <Download size={16} /> Export
+                  </button>
                 </div>
               </div>
 
@@ -376,9 +422,9 @@ export default function TeacherDashboard() {
                       {metrics.heatmap.length > 0 && Object.keys(metrics.heatmap[0])
                         .filter(k => k !== 'name' && k !== 'isActive')
                         .map(q => (
-                          <th 
-                            key={q} 
-                            style={{ cursor: 'pointer', color: '#2a6f8f', textDecoration: 'underline' }} 
+                          <th
+                            key={q}
+                            style={{ cursor: 'pointer', color: '#2a6f8f', textDecoration: 'underline' }}
                             onClick={() => handleViewQuestion(q)}
                             title="Klik untuk melihat detail soal"
                           >
@@ -396,15 +442,15 @@ export default function TeacherDashboard() {
                         displayedHeatmap = displayedHeatmap.filter(r => !r.isActive);
                       }
                       if (heatmapSearch.trim() !== '') {
-                        displayedHeatmap = displayedHeatmap.filter(r => 
+                        displayedHeatmap = displayedHeatmap.filter(r =>
                           r.name.toLowerCase().includes(heatmapSearch.toLowerCase())
                         );
                       }
-                    
+
                       displayedHeatmap.sort((a, b) => {
                         if (heatmapSort === 'asc') return a.name.localeCompare(b.name);
                         if (heatmapSort === 'desc') return b.name.localeCompare(a.name);
-                        
+
                         const getStats = (row) => {
                           let attempted = 0;
                           let correct = 0;
@@ -426,7 +472,7 @@ export default function TeacherDashboard() {
                         if (heatmapSort === 'most_correct') {
                           return statsB.correct - statsA.correct || a.name.localeCompare(b.name);
                         }
-                        
+
                         return 0;
                       });
 
@@ -556,12 +602,12 @@ export default function TeacherDashboard() {
                   <h2 className="td-section-title">Laporan Lengkap murid</h2>
                   <p className="td-section-subtitle">Daftar roster kelas beserta metrik kinerja individu.</p>
                 </div>
-                
+
                 <div style={{ display: 'flex', gap: '12px', flexWrap: 'wrap' }}>
-                  <input 
-                    type="text" 
-                    placeholder="Cari nama atau NIS..." 
-                    value={reportSearchTerm} 
+                  <input
+                    type="text"
+                    placeholder="Cari nama atau NIS..."
+                    value={reportSearchTerm}
                     onChange={(e) => setReportSearchTerm(e.target.value)}
                     style={{ padding: '8px', borderRadius: '6px', border: '1px solid #ccc', minWidth: '200px' }}
                   />
@@ -576,12 +622,6 @@ export default function TeacherDashboard() {
                     <option value="active">Aktif</option>
                     <option value="inactive">Nonaktif</option>
                   </select>
-                  <button
-                    onClick={handleDownloadXLSX}
-                    style={{ display: 'flex', alignItems: 'center', gap: '8px', padding: '10px 16px', backgroundColor: '#2a6f3f', color: '#fff', border: 'none', borderRadius: '8px', cursor: 'pointer', fontWeight: 'bold' }}
-                  >
-                    <Download size={18} /> Export
-                  </button>
                 </div>
               </div>
 
@@ -603,22 +643,22 @@ export default function TeacherDashboard() {
                     {(() => {
                       if (!metrics.studentsList) return null;
                       let displayedReports = [...metrics.studentsList];
-                      
+
                       // Search
                       if (reportSearchTerm) {
                         const term = reportSearchTerm.toLowerCase();
-                        displayedReports = displayedReports.filter(s => 
+                        displayedReports = displayedReports.filter(s =>
                           s.name.toLowerCase().includes(term) || String(s.nis).toLowerCase().includes(term)
                         );
                       }
-                      
+
                       // Filter
                       if (reportStatusFilter === 'active') {
                         displayedReports = displayedReports.filter(s => s.isActive);
                       } else if (reportStatusFilter === 'inactive') {
                         displayedReports = displayedReports.filter(s => !s.isActive);
                       }
-                      
+
                       // Sort
                       displayedReports.sort((a, b) => {
                         if (reportSortBy === 'score_desc') return b.score - a.score;
@@ -696,14 +736,14 @@ export default function TeacherDashboard() {
             <h3 style={{ marginTop: 0, color: '#3b2a1a', fontSize: '1.2rem', fontFamily: "'Cinzel Decorative', serif" }}>{modalConfig.title}</h3>
             <p style={{ color: '#6b5a4a', fontSize: '0.95rem', marginBottom: '24px', lineHeight: '1.5' }}>{modalConfig.message}</p>
             <div style={{ display: 'flex', gap: '12px', justifyContent: 'flex-end' }}>
-              <button 
-                onClick={modalConfig.onCancel} 
+              <button
+                onClick={modalConfig.onCancel}
                 style={{ padding: '8px 16px', background: 'transparent', border: '1px solid #ccc', borderRadius: '8px', cursor: 'pointer', fontWeight: '500', color: '#666' }}
               >
                 Batal
               </button>
-              <button 
-                onClick={modalConfig.onConfirm} 
+              <button
+                onClick={modalConfig.onConfirm}
                 style={{ padding: '8px 16px', background: '#2a6f8f', border: 'none', borderRadius: '8px', cursor: 'pointer', fontWeight: 'bold', color: '#fff' }}
               >
                 Ya, Lanjutkan
@@ -719,7 +759,7 @@ export default function TeacherDashboard() {
             <h3 style={{ marginTop: 0, color: '#3b2a1a', fontSize: '1.2rem', fontFamily: "'Cinzel Decorative', serif", borderBottom: '1px solid #e2d3b3', paddingBottom: '12px' }}>
               Detail Soal: {selectedQuestionModal.id}
             </h3>
-            
+
             {selectedQuestionModal.loading ? (
               <p>Memuat soal...</p>
             ) : selectedQuestionModal.error ? (
@@ -744,10 +784,10 @@ export default function TeacherDashboard() {
                 </div>
               </div>
             )}
-            
+
             <div style={{ display: 'flex', justifyContent: 'flex-end', marginTop: '24px' }}>
-              <button 
-                onClick={() => setSelectedQuestionModal(null)} 
+              <button
+                onClick={() => setSelectedQuestionModal(null)}
                 style={{ padding: '8px 16px', background: '#2a6f8f', border: 'none', borderRadius: '8px', cursor: 'pointer', fontWeight: 'bold', color: '#fff' }}
               >
                 Tutup

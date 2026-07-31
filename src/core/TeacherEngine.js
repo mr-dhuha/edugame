@@ -1,4 +1,5 @@
 import { supabase } from './SupabaseClient';
+import questionsData from '../data/questions.json';
 
 export async function fetchTeacherMetrics(class_code = null) {
   if (!supabase) return getEmptyData();
@@ -36,7 +37,8 @@ export async function fetchTeacherMetrics(class_code = null) {
         name: s.name,
         isActive: s.is_active !== false,
         episodesCompleted: new Set(),
-        totalXP: 0,
+        totalXP: 0, // dipertahankan untuk backward compatibility, tapi kita akan pakai score100
+        score100: 0,
         timeSec: 0,
         missions: {},
         questions: {},
@@ -48,7 +50,6 @@ export async function fetchTeacherMetrics(class_code = null) {
 
     // 2. Events Aggregation
     const miscMap = {};
-    const bloomMap = { 'C1': { t: 0, c: 0 }, 'C2': { t: 0, c: 0 }, 'C3': { t: 0, c: 0 }, 'C4': { t: 0, c: 0 }, 'C5': { t: 0, c: 0 }, 'C6': { t: 0, c: 0 } };
     const confScatter = [];
     const reflectionScores = { excellent: 0, good: 0, fair: 0, poor: 0 };
     let totalEpsCompleted = 0;
@@ -60,6 +61,9 @@ export async function fetchTeacherMetrics(class_code = null) {
       if (ev.response_time_ms) s.timeSec += ev.response_time_ms / 1000;
 
       if (ev.event_type === 'episode_completed') {
+        if (s.episodesCompleted.has(ev.episode_id)) {
+          s.replays++;
+        }
         s.episodesCompleted.add(ev.episode_id);
       }
 
@@ -72,7 +76,7 @@ export async function fetchTeacherMetrics(class_code = null) {
       }
 
       if (ev.event_type === 'question_attempt') {
-        const h = ev.hints_used || 0;
+        const h = ev.hints_used || (ev.metadata && ev.metadata.hints_used) || 0;
         s.hints += h;
 
         if (ev.episode_id && ev.question_id) {
@@ -104,13 +108,6 @@ export async function fetchTeacherMetrics(class_code = null) {
               label: ev.is_correct ? 'Benar' : 'Salah'
             });
           }
-
-          // Placeholder for Bloom mapping, using difficulty level for now or default
-          const bl = ev.difficulty_level || 'C1';
-          if (bloomMap[bl]) {
-            bloomMap[bl].t++;
-            if (ev.is_correct) bloomMap[bl].c++;
-          }
         }
       }
 
@@ -131,13 +128,18 @@ export async function fetchTeacherMetrics(class_code = null) {
 
     // 3. Finalize Data Formats for UI
     const heatQs = new Set();
+    const bloomMap = {};
+    questionsData.forEach(q => {
+      if (q.id && q.bloom) bloomMap[q.id] = q.bloom;
+    });
+    const bloomCounts = { C1: { total: 0, correct: 0 }, C2: { total: 0, correct: 0 }, C3: { total: 0, correct: 0 }, C4: { total: 0, correct: 0 }, C5: { total: 0, correct: 0 }, C6: { total: 0, correct: 0 } };
+
     let totalXPAll = 0;
     let studentsBelow70 = 0;
     let studentsAbove90 = 0;
     studentMap.forEach((s) => {
       Object.keys(s.questions).forEach(q => heatQs.add(q));
       totalEpsCompleted += s.episodesCompleted.size;
-      totalXPAll += s.totalXP;
 
       const eps = [];
       for (let ep in s.missions) {
@@ -145,19 +147,41 @@ export async function fetchTeacherMetrics(class_code = null) {
       }
       if (eps.length > 0) metrics.learningJourney.push({ name: s.name, episodes: eps });
 
-      // Update intervention logic
-      if (s.remedials >= 2 || s.hints >= 3 || (s.timeSec > 600 && s.totalXP < 200)) {
+      // Menghitung Skor 0-100 berdasarkan unique questions
+      let points = 0;
+      let totalQs = 0;
+      Object.entries(s.questions).forEach(([qId, status]) => {
+        totalQs++;
+        if (status === 'correct') points += 1;
+        else if (status === 'hint') points += 0.5;
+
+        // Agregasi Bloom
+        const b = bloomMap[qId];
+        if (b && bloomCounts[b]) {
+          bloomCounts[b].total++;
+          if (status === 'correct' || status === 'hint') bloomCounts[b].correct++;
+        }
+      });
+      s.score100 = totalQs > 0 ? Math.round((points / totalQs) * 100) : 0;
+
+      // Update intervention logic: Siswa dianggap butuh intervensi jika sudah menjawab soal (totalQs > 0) namun skor akhir di bawah 60, atau butuh banyak hint/remedial.
+      const isStruggling = (s.remedials >= 1 || s.hints >= 3 || (totalQs > 0 && s.score100 < 60));
+      s.needsIntervention = isStruggling;
+      if (isStruggling) {
         studentsBelow70++;
       }
-      if (s.totalXP >= 500) {
+      if (s.score100 >= 85) {
         studentsAbove90++;
       }
 
-      metrics.adaptiveStats.hint += s.hints;
-      metrics.adaptiveStats.remedial += s.remedials;
+      totalXPAll += s.score100;
+
+      if (s.hints > 0) metrics.adaptiveStats.hint++;
+      if (s.remedials > 0) metrics.adaptiveStats.remedial++;
+      if (s.replays > 0) metrics.adaptiveStats.replay++;
       if (s.episodesCompleted.size === 4) metrics.adaptiveStats.completionRate++;
       if (s.remedials > 0) metrics.adaptiveStats.struggling++;
-      if (s.hints === 0 && s.remedials === 0 && s.totalXP > 0) metrics.adaptiveStats.fastTrack++;
+      if (s.hints === 0 && s.remedials === 0 && s.score100 > 0 && s.replays === 0) metrics.adaptiveStats.fastTrack++;
     });
 
     metrics.overview.averageScore = Math.round(totalXPAll / students.length) || 0;
@@ -175,6 +199,14 @@ export async function fetchTeacherMetrics(class_code = null) {
         hmRow[q] = s.questions[q] || 'empty';
       });
       metrics.heatmap.push(hmRow);
+    });
+
+    // Formatting Bloom Data
+    const bloomLabels = { C1: 'C1 Mengingat', C2: 'C2 Memahami', C3: 'C3 Mengaplikasikan', C4: 'C4 Menganalisis', C5: 'C5 Mengevaluasi', C6: 'C6 Mencipta' };
+    metrics.bloomData = Object.keys(bloomCounts).map(lvl => {
+      const b = bloomCounts[lvl];
+      const rate = b.total > 0 ? Math.round((b.correct / b.total) * 100) : 0;
+      return { subject: bloomLabels[lvl], A: rate };
     });
 
     metrics.overview.episodeCompletionPct = Math.round((totalEpsCompleted / (students.length * 4)) * 100) || 0;
@@ -206,15 +238,6 @@ export async function fetchTeacherMetrics(class_code = null) {
 
     metrics.confidenceData = confScatter;
 
-    // Bloom Radar
-    metrics.bloomData = [
-      { subject: 'C1', A: Math.round((bloomMap['C1'].c / (bloomMap['C1'].t || 1)) * 100), fullMark: 100 },
-      { subject: 'C2', A: Math.round((bloomMap['C2'].c / (bloomMap['C2'].t || 1)) * 100), fullMark: 100 },
-      { subject: 'C3', A: Math.round((bloomMap['C3'].c / (bloomMap['C3'].t || 1)) * 100), fullMark: 100 },
-      { subject: 'C4', A: Math.round((bloomMap['C4'].c / (bloomMap['C4'].t || 1)) * 100), fullMark: 100 },
-      { subject: 'C5/C6', A: Math.round(((bloomMap['C5'].c + bloomMap['C6'].c) / ((bloomMap['C5'].t + bloomMap['C6'].t) || 1)) * 100), fullMark: 100 }
-    ];
-
     let totalRef = reflectionScores.excellent + reflectionScores.good + reflectionScores.fair + reflectionScores.poor;
     if (totalRef > 0) {
       metrics.reflectionStats = {
@@ -243,19 +266,20 @@ export async function fetchTeacherMetrics(class_code = null) {
       metrics.aiInsight = { headline: "Semua Normal", detail: "Pemahaman kelas stabil", recommendations: ["Lanjutkan misi"], interventions: [] };
     }
 
-    const sorted = Array.from(studentMap.values()).sort((a, b) => b.totalXP - a.totalXP);
+    const sorted = Array.from(studentMap.values()).sort((a, b) => b.score100 - a.score100);
 
     metrics.studentsList = sorted.map(s => ({
       name: s.name,
       nis: s.nis,
-      score: s.totalXP,
+      score: s.score100,
       progress: s.episodesCompleted.size * 25,
       episodesCompleted: s.episodesCompleted.size,
       hintsUsed: s.hints,
       remedials: s.remedials,
       isActive: s.isActive,
       timeSec: s.timeSec,
-      questions: s.questions
+      questions: s.questions,
+      needsIntervention: s.needsIntervention || false
     }));
 
     if (sorted.length > 0) {
@@ -284,12 +308,17 @@ function getEmptyData() {
     studentsList: [],
     episodeProgress: [{ id: 1, title: 'Episode 1', pct: 0 }],
     learningJourney: [],
-    heatmap: [{ name: '-', q1: 'empty' }],
+    heatmap: [],
+    bloomData: [
+      { subject: 'C1 Mengingat', A: 0 },
+      { subject: 'C2 Memahami', A: 0 },
+      { subject: 'C3 Mengaplikasikan', A: 0 },
+      { subject: 'C4 Menganalisis', A: 0 },
+      { subject: 'C5 Mengevaluasi', A: 0 },
+      { subject: 'C6 Mencipta', A: 0 }
+    ],
     misconceptions: [],
     confidenceData: [],
-    bloomData: [
-      { subject: 'C1', A: 0, fullMark: 100 }, { subject: 'C2', A: 0, fullMark: 100 }, { subject: 'C3', A: 0, fullMark: 100 }, { subject: 'C4', A: 0, fullMark: 100 }, { subject: 'C5/C6', A: 0, fullMark: 100 }
-    ],
     adaptiveStats: { fastTrack: 0, hint: 0, remedial: 0, replay: 0 },
     reflectionStats: { excellent: 0, good: 0, fair: 0, poor: 0, summary: "Belum ada data refleksi." },
     leaderboard: {
