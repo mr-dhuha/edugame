@@ -138,6 +138,9 @@
   padding: 32px;
   overflow-y: auto;
 }
+.td-content.heatmap-no-padding {
+  padding: 16px; /* give slight padding so it doesn't touch the edge completely */
+}
 .td-fade-in {
   animation: fadeIn 0.3s ease;
 }
@@ -169,6 +172,12 @@
   border-radius: 16px;
   padding: 24px;
   box-shadow: 0 4px 6px -1px rgba(0,0,0,0.05);
+}
+.heatmap-full {
+  width: 100%;
+  height: 100%;
+  background: transparent;
+  padding: 8px;
 }
 .td-card-title {
   margin: 0 0 20px 0;

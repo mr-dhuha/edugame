@@ -170,7 +170,7 @@ export async function fetchTeacherMetrics(class_code = null) {
     if (allQ.length === 0) allQ.push('Q1');
     metrics.heatmap = [];
     studentMap.forEach((s) => {
-      const hmRow = { name: s.name.split(' ')[0], isActive: s.isActive };
+      const hmRow = { name: s.name, isActive: s.isActive };
       allQ.forEach(q => {
         hmRow[q] = s.questions[q] || 'empty';
       });

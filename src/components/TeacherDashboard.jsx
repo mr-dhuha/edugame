@@ -21,6 +21,7 @@ export default function TeacherDashboard() {
   
   const [heatmapSort, setHeatmapSort] = useState('asc');
   const [heatmapStatusFilter, setHeatmapStatusFilter] = useState('all');
+  const [heatmapSearch, setHeatmapSearch] = useState('');
   const [selectedQuestionModal, setSelectedQuestionModal] = useState(null);
   const [isLoadingQuestion, setIsLoadingQuestion] = useState(false);
   
@@ -210,7 +211,7 @@ export default function TeacherDashboard() {
         </aside>
 
         {/* CONTENT AREA */}
-        <main className="td-content">
+        <div className={`td-content ${activeTab === 'heatmap' ? 'heatmap-no-padding' : ''}`}>
 
           {/* OVERVIEW */}
           {activeTab === 'overview' && (
@@ -332,13 +333,20 @@ export default function TeacherDashboard() {
 
           {/* HEATMAP */}
           {activeTab === 'heatmap' && (
-            <div className="td-fade-in td-card">
+            <div className="td-fade-in heatmap-full">
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                 <div>
                   <h2 className="td-section-title">Heatmap Kelas</h2>
                   <p className="td-section-subtitle">Matriks jawaban murid per pertanyaan untuk identifikasi cepat.</p>
                 </div>
                 <div style={{ display: 'flex', gap: '12px' }}>
+                  <input 
+                    type="text" 
+                    placeholder="Cari murid..." 
+                    value={heatmapSearch}
+                    onChange={(e) => setHeatmapSearch(e.target.value)}
+                    style={{ padding: '8px', borderRadius: '6px', border: '1px solid #ccc', minWidth: '150px' }}
+                  />
                   <select value={heatmapSort} onChange={(e) => setHeatmapSort(e.target.value)} style={{ padding: '8px', borderRadius: '6px', border: '1px solid #ccc' }}>
                     <option value="asc">Nama (A-Z)</option>
                     <option value="desc">Nama (Z-A)</option>
@@ -384,6 +392,11 @@ export default function TeacherDashboard() {
                         displayedHeatmap = displayedHeatmap.filter(r => r.isActive);
                       } else if (heatmapStatusFilter === 'inactive') {
                         displayedHeatmap = displayedHeatmap.filter(r => !r.isActive);
+                      }
+                      if (heatmapSearch.trim() !== '') {
+                        displayedHeatmap = displayedHeatmap.filter(r => 
+                          r.name.toLowerCase().includes(heatmapSearch.toLowerCase())
+                        );
                       }
                     
                       displayedHeatmap.sort((a, b) => {
