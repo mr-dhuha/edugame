@@ -370,7 +370,10 @@
 .hm-name {
   font-weight: 500;
   padding-right: 16px;
-  width: 120px;
+  width: 220px;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
 }
 .hm-cell {
   width: 100%;
