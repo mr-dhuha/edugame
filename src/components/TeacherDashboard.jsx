@@ -211,7 +211,7 @@ export default function TeacherDashboard() {
         </aside>
 
         {/* CONTENT AREA */}
-        <div className={`td-content ${activeTab === 'heatmap' ? 'heatmap-no-padding' : ''}`}>
+        <main className={`td-content ${activeTab === 'heatmap' ? 'heatmap-no-padding' : ''}`}>
 
           {/* OVERVIEW */}
           {activeTab === 'overview' && (
