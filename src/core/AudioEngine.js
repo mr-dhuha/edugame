@@ -2,6 +2,7 @@ class AudioEngine {
   constructor() {
     this.musicEnabled = localStorage.getItem('cq_music_enabled') !== 'false';
     this.sfxEnabled = localStorage.getItem('cq_sfx_enabled') !== 'false';
+    this.bgmBlocked = false;
     
     // Load Audio Objects
     this.bgm = new Audio('/audio/bgm.ogg');
@@ -18,6 +19,15 @@ class AudioEngine {
     Object.values(this.sfx).forEach(audio => {
       audio.volume = 0.5;
     });
+
+    // Unlock audio on first user interaction
+    const unlockAudio = () => {
+      if (this.bgmBlocked && this.musicEnabled) {
+        this.playBGM();
+      }
+    };
+    window.addEventListener('click', unlockAudio);
+    window.addEventListener('keydown', unlockAudio);
   }
 
   // --- SETTINGS ---
@@ -40,7 +50,12 @@ class AudioEngine {
   playBGM() {
     if (this.musicEnabled) {
       // Browser might block this if no user interaction yet, handle gracefully
-      this.bgm.play().catch(e => console.warn('BGM blocked by browser autoplay policy:', e));
+      this.bgm.play().then(() => {
+        this.bgmBlocked = false;
+      }).catch(e => {
+        console.warn('BGM blocked by browser autoplay policy:', e);
+        this.bgmBlocked = true;
+      });
     }
   }
 
