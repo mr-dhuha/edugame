@@ -4,10 +4,14 @@ class AudioEngine {
     this.sfxEnabled = localStorage.getItem('cq_sfx_enabled') !== 'false';
     this.bgmBlocked = false;
     
+    this.activeSfxCount = 0;
+    this.normalBgmVolume = 0.05;
+    this.duckedBgmVolume = 0.01;
+    
     // Load Audio Objects
     this.bgm = new Audio('/audio/jonasblakewood-tropical-533862.mp3');
     this.bgm.loop = true;
-    this.bgm.volume = 0.2; // Keep background music soft
+    this.bgm.volume = this.normalBgmVolume; // Keep background music very soft
 
     this.sfx = {
       click: new Audio('/audio/creatorshome-select-001-337218.mp3'),
@@ -20,7 +24,7 @@ class AudioEngine {
 
     // Preload SFX
     Object.values(this.sfx).forEach(audio => {
-      audio.volume = 0.5;
+      audio.volume = 1.0;
     });
 
     // Unlock audio on first user interaction
@@ -74,7 +78,31 @@ class AudioEngine {
       // Clone the node to allow overlapping sounds (e.g. rapid clicking)
       const clone = audio.cloneNode();
       clone.volume = audio.volume;
-      clone.play().catch(e => console.warn('SFX blocked:', e));
+      
+      // Audio Ducking (Auto Low Volume)
+      this.activeSfxCount++;
+      if (this.musicEnabled && this.bgm) {
+        this.bgm.volume = this.duckedBgmVolume;
+      }
+      
+      let restored = false;
+      const restoreBgm = () => {
+        if (restored) return;
+        restored = true;
+        this.activeSfxCount = Math.max(0, this.activeSfxCount - 1);
+        if (this.activeSfxCount === 0 && this.musicEnabled && this.bgm) {
+          this.bgm.volume = this.normalBgmVolume;
+        }
+      };
+      
+      clone.onended = restoreBgm;
+      clone.onpause = restoreBgm;
+
+      clone.play().catch(e => {
+        console.warn('SFX blocked:', e);
+        restoreBgm();
+      });
+      return clone;
     } else {
       console.warn(`SFX key '${key}' not found.`);
     }

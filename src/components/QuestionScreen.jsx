@@ -34,6 +34,7 @@ export default function QuestionScreen({ context, fsmState }) {
   const [confidence, setConfidence] = useState(null);
   const [timeLeft, setTimeLeft] = useState(0);
   const timerRef = useRef(null);
+  const countdownAudioRef = useRef(null);
   
   const startTimeRef = useRef(Date.now());
   const hintsUsedRef = useRef(0);
@@ -141,17 +142,29 @@ export default function QuestionScreen({ context, fsmState }) {
     if (timeLeft > 0 && fsmState === STATES.QUESTION_START) {
       timerRef.current = setInterval(() => {
         setTimeLeft(prev => {
-          if (prev <= 1) {
+          const next = prev - 1;
+          if (next === 10) {
+            countdownAudioRef.current = audioEngine.playSFX('countdown');
+          }
+          if (next <= 0) {
             clearInterval(timerRef.current);
+            if (countdownAudioRef.current) {
+              countdownAudioRef.current.pause();
+              countdownAudioRef.current = null;
+            }
             handleTimeout();
             return 0;
           }
-          return prev - 1;
+          return next;
         });
       }, 1000);
     }
     return () => {
       if (timerRef.current) clearInterval(timerRef.current);
+      if (countdownAudioRef.current) {
+        countdownAudioRef.current.pause();
+        countdownAudioRef.current = null;
+      }
     };
   }, [timeLeft, fsmState]);
 
@@ -172,6 +185,10 @@ export default function QuestionScreen({ context, fsmState }) {
 
   const handleConfidenceSubmit = (confLevel, isTimeout = false) => {
     if (timerRef.current) clearInterval(timerRef.current);
+    if (countdownAudioRef.current) {
+      countdownAudioRef.current.pause();
+      countdownAudioRef.current = null;
+    }
     setConfidence(confLevel);
     
     const responseTimeMs = Date.now() - startTimeRef.current;
