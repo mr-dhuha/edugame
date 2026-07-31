@@ -333,7 +333,7 @@ export default function TeacherDashboard() {
 
           {/* HEATMAP */}
           {activeTab === 'heatmap' && (
-            <div className="td-fade-in heatmap-full">
+            <div className="td-fade-in td-card">
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
                 <div>
                   <h2 className="td-section-title">Heatmap Kelas</h2>
@@ -350,6 +350,8 @@ export default function TeacherDashboard() {
                   <select value={heatmapSort} onChange={(e) => setHeatmapSort(e.target.value)} style={{ padding: '8px', borderRadius: '6px', border: '1px solid #ccc' }}>
                     <option value="asc">Nama (A-Z)</option>
                     <option value="desc">Nama (Z-A)</option>
+                    <option value="most_attempted">Paling Banyak Dikerjakan</option>
+                    <option value="most_correct">Paling Banyak Benar</option>
                   </select>
                   <select value={heatmapStatusFilter} onChange={(e) => setHeatmapStatusFilter(e.target.value)} style={{ padding: '8px', borderRadius: '6px', border: '1px solid #ccc' }}>
                     <option value="all">Semua Status</option>
@@ -401,7 +403,31 @@ export default function TeacherDashboard() {
                     
                       displayedHeatmap.sort((a, b) => {
                         if (heatmapSort === 'asc') return a.name.localeCompare(b.name);
-                        return b.name.localeCompare(a.name);
+                        if (heatmapSort === 'desc') return b.name.localeCompare(a.name);
+                        
+                        const getStats = (row) => {
+                          let attempted = 0;
+                          let correct = 0;
+                          Object.keys(row).forEach(k => {
+                            if (k !== 'name' && k !== 'isActive') {
+                              if (row[k] !== 'empty') attempted++;
+                              if (row[k] === 'correct') correct++;
+                            }
+                          });
+                          return { attempted, correct };
+                        };
+
+                        const statsA = getStats(a);
+                        const statsB = getStats(b);
+
+                        if (heatmapSort === 'most_attempted') {
+                          return statsB.attempted - statsA.attempted || a.name.localeCompare(b.name);
+                        }
+                        if (heatmapSort === 'most_correct') {
+                          return statsB.correct - statsA.correct || a.name.localeCompare(b.name);
+                        }
+                        
+                        return 0;
                       });
 
                       return displayedHeatmap.map((row, i) => (
