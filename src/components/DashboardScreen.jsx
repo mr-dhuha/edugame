@@ -64,7 +64,7 @@ export default function DashboardScreen({ playerState }) {
           {/* Invisible Hitboxes / Buttons di atas Peta Utama */}
           {episodesData.map((ep, i) => {
             const node = NODES[i];
-            const unlocked = isEpisodeUnlocked(ep.id, playerState.completedEpisodes, episodesData);
+            const unlocked = isEpisodeUnlocked(ep.id, playerState, episodesData);
             const completed = playerState.completedEpisodes.has(ep.id);
             
             return (

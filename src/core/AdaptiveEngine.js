@@ -155,17 +155,22 @@ export function getNextDifficulty(currentDifficulty, gateAction) {
  * @param {Array} episodesData - episodes.json data
  * @returns {boolean}
  */
-export function isEpisodeUnlocked(episodeId, completedEpisodes, episodesData) {
+export function isEpisodeUnlocked(episodeId, playerState, episodesData) {
   // Jika mode unlock semua aktif, buka semua episode
   if (gameRules.progression?.unlockAllEpisodes) return true;
 
   const episode = episodesData.find((e) => e.id === episodeId);
   if (!episode) return false;
 
+  // Jika murid sudah punya progress di episode ini (pernah menjawab soal), anggap terbuka
+  if (playerState.episodeStats && playerState.episodeStats[episodeId]) return true;
+
   // No unlock condition = always available (Episode 1)
   if (!episode.unlockCondition) return true;
 
   const { episodeCompleted } = episode.unlockCondition;
+  const completedEpisodes = playerState.completedEpisodes || new Set();
+  
   return completedEpisodes.has(episodeCompleted) || 
          completedEpisodes.has(String(episodeCompleted)) || 
          completedEpisodes.has(Number(episodeCompleted));
