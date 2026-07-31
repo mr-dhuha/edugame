@@ -189,7 +189,7 @@ export default function QuestionManager() {
                     handleChange('options', newOpts);
                     handleChange('answer', opt.text);
                   }} />
-                  Kunci
+                  Jawaban Benar
                 </label>
               </div>
             ))}
