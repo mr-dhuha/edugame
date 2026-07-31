@@ -37,23 +37,23 @@ export default function EpisodeCompleteScreen({ context, playerState }) {
       </p>
 
       {stats && (
-        <div style={{ backgroundImage: 'url(/img/panel_wood.png)', backgroundSize: '100% 100%', backgroundPosition: 'center', padding: '30px 24px', width: '100%', maxWidth: '400px', marginBottom: '32px', color: '#f4e4c1' }}>
-          <h4 style={{ fontFamily: "'Cinzel Decorative', serif", fontSize: '1.2rem', margin: '0 0 16px 0', textAlign: 'center', color: '#ffd700', textShadow: '1px 1px 2px rgba(0,0,0,0.5)' }}>Statistik Misi</h4>
+        <div style={{ backgroundImage: 'url(/img/panel_wood.png)', backgroundSize: '100% 100%', backgroundPosition: 'center', padding: '30px 24px', width: '100%', maxWidth: '400px', marginBottom: '32px', color: '#3b2a1a' }}>
+          <h4 style={{ fontFamily: "'Cinzel Decorative', serif", fontSize: '1.2rem', margin: '0 0 16px 0', textAlign: 'center', color: '#8b4513', textShadow: '1px 1px 1px rgba(255,255,255,0.7)' }}>Statistik Misi</h4>
           <ul style={{ listStyle: 'none', padding: 0, margin: 0, fontSize: '1.05rem', display: 'flex', flexDirection: 'column', gap: '12px' }}>
-            <li style={{ display: 'flex', justifyContent: 'space-between', borderBottom: '1px solid rgba(255,255,255,0.2)', paddingBottom: '4px' }}>
+            <li style={{ display: 'flex', justifyContent: 'space-between', borderBottom: '1px solid rgba(59,42,26,0.2)', paddingBottom: '4px' }}>
               <span>Total Pertanyaan:</span> <strong>{stats.totalCount}</strong>
             </li>
-            <li style={{ display: 'flex', justifyContent: 'space-between', borderBottom: '1px solid rgba(255,255,255,0.2)', paddingBottom: '4px' }}>
+            <li style={{ display: 'flex', justifyContent: 'space-between', borderBottom: '1px solid rgba(59,42,26,0.2)', paddingBottom: '4px' }}>
               <span>Jawaban Benar:</span> <strong>{stats.correctCount}</strong>
             </li>
-            <li style={{ display: 'flex', justifyContent: 'space-between', borderBottom: '1px solid rgba(255,255,255,0.2)', paddingBottom: '4px' }}>
-              <span>Akurasi:</span> <strong style={{ color: '#90ee90' }}>{Math.round((stats.correctCount / stats.totalCount) * 100)}%</strong>
+            <li style={{ display: 'flex', justifyContent: 'space-between', borderBottom: '1px solid rgba(59,42,26,0.2)', paddingBottom: '4px' }}>
+              <span>Akurasi:</span> <strong style={{ color: '#2e7d32' }}>{Math.round((stats.correctCount / stats.totalCount) * 100)}%</strong>
             </li>
-            <li style={{ display: 'flex', justifyContent: 'space-between', borderBottom: '1px solid rgba(255,255,255,0.2)', paddingBottom: '4px' }}>
+            <li style={{ display: 'flex', justifyContent: 'space-between', borderBottom: '1px solid rgba(59,42,26,0.2)', paddingBottom: '4px' }}>
               <span>Waktu Total:</span> <strong>{Math.round(stats.totalTimeSec)} dtk</strong>
             </li>
             <li style={{ display: 'flex', justifyContent: 'space-between' }}>
-              <span>Petunjuk Dipakai:</span> <strong style={{ color: '#ffb6c1' }}>{stats.hintsUsed}</strong>
+              <span>Petunjuk Dipakai:</span> <strong style={{ color: '#c62828' }}>{stats.hintsUsed}</strong>
             </li>
           </ul>
         </div>

@@ -5,14 +5,17 @@ class AudioEngine {
     this.bgmBlocked = false;
     
     // Load Audio Objects
-    this.bgm = new Audio('/audio/bgm.ogg');
+    this.bgm = new Audio('/audio/jonasblakewood-tropical-533862.mp3');
     this.bgm.loop = true;
     this.bgm.volume = 0.2; // Keep background music soft
 
     this.sfx = {
-      click: new Audio('/audio/click.ogg'),
-      success: new Audio('/audio/success.wav'),
-      fail: new Audio('/audio/fail.wav')
+      click: new Audio('/audio/creatorshome-select-001-337218.mp3'),
+      success: new Audio('/audio/scratchonix-victory-chime-366449.mp3'),
+      fail: new Audio('/audio/freesound_community-wrong-buzzer-6268.mp3'),
+      correct: new Audio('/audio/dragon-studio-correct-472358.mp3'),
+      typing: new Audio('/audio/dragon-studio-keyboard-typing-sound-effect-335503.mp3'),
+      countdown: new Audio('/audio/kave_msri-10sec-digital-countdown-sfx-319873.mp3')
     };
 
     // Preload SFX
