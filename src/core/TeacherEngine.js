@@ -253,7 +253,9 @@ export async function fetchTeacherMetrics(class_code = null) {
       episodesCompleted: s.episodesCompleted.size,
       hintsUsed: s.hints,
       remedials: s.remedials,
-      isActive: s.isActive
+      isActive: s.isActive,
+      timeSec: s.timeSec,
+      questions: s.questions
     }));
 
     if (sorted.length > 0) {

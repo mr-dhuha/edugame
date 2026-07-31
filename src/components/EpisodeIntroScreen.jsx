@@ -23,10 +23,10 @@ export default function EpisodeIntroScreen({ context }) {
   if (!episode) return <div style={{ width: '100%', minHeight: '100vh', background: '#f4e4c1', display: 'flex', alignItems: 'center', justifyContent: 'center', fontFamily: "'EB Garamond', serif", color: '#3b2a1a' }}>Gagal memuat episode.</div>;
 
   return (
-    <div style={{ width: '100%', minHeight: '100vh', minHeight: '100dvh', background: 'url(/img/bg_jungle.png) center center / cover no-repeat', padding: '24px 20px', fontFamily: "'EB Garamond', serif", display: 'flex', flexDirection: 'column', position: 'relative' }}>
+    <div style={{ width: '100%', minHeight: '100vh', minHeight: '100dvh', background: 'url(/map_bg.png) center center / cover no-repeat fixed', padding: '24px 20px', fontFamily: "'EB Garamond', serif", display: 'flex', flexDirection: 'column', position: 'relative' }}>
       
       {/* Overlay to ensure readability */}
-      <div style={{ position: 'absolute', top: 0, left: 0, right: 0, bottom: 0, backgroundColor: 'rgba(244,228,193,0.85)', zIndex: 0 }} />
+      <div style={{ position: 'absolute', top: 0, left: 0, right: 0, bottom: 0, backgroundColor: 'rgba(255,255,255,0.5)', backdropFilter: 'blur(3px)', WebkitBackdropFilter: 'blur(3px)', zIndex: 0 }} />
 
       <div style={{ position: 'relative', zIndex: 1, display: 'flex', flexDirection: 'column', flex: 1 }}>
         {/* Header */}

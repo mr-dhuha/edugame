@@ -110,15 +110,29 @@ export default function TeacherDashboard() {
 
   const handleDownloadXLSX = () => {
     if (!metrics || !metrics.studentsList) return;
-    const dataToExport = metrics.studentsList.map(s => ({
-      'Nama Lengkap': s.name,
-      'NIS': s.nis,
-      'Skor Mastery': s.score,
-      'Episode Selesai': s.episodesCompleted,
-      'Bantuan Hint': s.hintsUsed,
-      'Remedial': s.remedials,
-      'Status Aktif': s.isActive ? 'Aktif' : 'Menunggu'
-    }));
+    const dataToExport = metrics.studentsList.map(s => {
+      const baseData = {
+        'Nama Lengkap': s.name,
+        'NIS': s.nis,
+        'Total XP': s.score,
+        'Episode Selesai': s.episodesCompleted,
+        'Total Waktu (Menit)': Math.round(s.timeSec / 60) || 0,
+        'Total Bantuan Hint': s.hintsUsed,
+        'Total Remedial': s.remedials,
+        'Status Aktif': s.isActive ? 'Aktif' : 'Menunggu'
+      };
+
+      if (s.questions) {
+        Object.keys(s.questions).forEach(q => {
+          let val = s.questions[q];
+          if (val === 'correct') val = 'Benar';
+          else if (val === 'incorrect') val = 'Salah';
+          else if (val === 'hint') val = 'Benar dgn Hint';
+          baseData[`Soal ${q}`] = val;
+        });
+      }
+      return baseData;
+    });
 
     const worksheet = XLSX.utils.json_to_sheet(dataToExport);
     const workbook = XLSX.utils.book_new();
