@@ -4,6 +4,19 @@
   padding: 0;
 }
 
+/* =========================================
+   ANTI-CHEAT SYSTEM
+   ========================================= */
+.question-screen {
+  -webkit-user-select: none;
+  -moz-user-select: none;
+  -ms-user-select: none;
+  user-select: none;
+}
+.question-screen img {
+  -webkit-user-drag: none;
+}
+
 html, body, #root {
   width: 100%;
   min-height: 100vh;

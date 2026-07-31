@@ -11,7 +11,7 @@ export async function fetchTeacherMetrics(class_code = null) {
     if (errS) throw errS;
     if (!rawStudents || rawStudents.length === 0) return getEmptyData();
 
-    const students = rawStudents.filter(s => s.is_active !== false);
+    const students = rawStudents;
     if (students.length === 0) return getEmptyData();
 
     const studentIds = students.map(s => s.nis);
@@ -22,13 +22,7 @@ export async function fetchTeacherMetrics(class_code = null) {
       .in('student_id', studentIds)
       .order('timestamp', { ascending: true });
 
-    const { data: masteryLogs, error: errM } = await supabase
-      .from('mastery_logs')
-      .select('*')
-      .in('student_id', studentIds)
-      .order('timestamp', { ascending: true });
-
-    if (errE || errM) throw new Error("Gagal mengambil data event");
+    if (errE) throw new Error("Gagal mengambil data event");
 
     // Initialize Metrics
     const metrics = getEmptyData();
@@ -38,9 +32,11 @@ export async function fetchTeacherMetrics(class_code = null) {
     const studentMap = new Map();
     students.forEach(s => {
       studentMap.set(s.nis, {
+        nis: s.nis,
         name: s.name,
+        isActive: s.is_active !== false,
         episodesCompleted: new Set(),
-        mastery: 0,
+        totalXP: 0,
         timeSec: 0,
         missions: {},
         questions: {},
@@ -49,25 +45,6 @@ export async function fetchTeacherMetrics(class_code = null) {
         replays: 0
       });
     });
-
-    // 1. Mastery Aggregation
-    let totalMastery = 0;
-    masteryLogs?.forEach(log => {
-      if (studentMap.has(log.student_id)) {
-        studentMap.get(log.student_id).mastery = log.new_score;
-      }
-    });
-    studentMap.forEach(s => totalMastery += s.mastery);
-    metrics.overview.averageScore = Math.round(totalMastery / students.length) || 0;
-
-    let studentsBelow70 = 0;
-    let studentsAbove90 = 0;
-    studentMap.forEach(s => {
-      if (s.mastery < 70) studentsBelow70++;
-      if (s.mastery >= 90) studentsAbove90++;
-    });
-    metrics.overview.studentsNeedIntervention = studentsBelow70;
-    metrics.overview.highPerformers = studentsAbove90;
 
     // 2. Events Aggregation
     const miscMap = {};
@@ -82,44 +59,58 @@ export async function fetchTeacherMetrics(class_code = null) {
 
       if (ev.response_time_ms) s.timeSec += ev.response_time_ms / 1000;
 
-      if (ev.event_type === 'EPISODE_COMPLETED') {
+      if (ev.event_type === 'episode_completed') {
         s.episodesCompleted.add(ev.episode_id);
       }
 
-      if (ev.event_type === 'HINT_USED') s.hints++;
-      if (ev.event_type === 'REMEDIAL_TRIGGERED') s.remedials++;
+      if (ev.event_type === 'remedial_triggered') {
+        s.remedials++;
+        if (ev.episode_id) {
+          if (!s.missions[ev.episode_id]) s.missions[ev.episode_id] = [];
+          s.missions[ev.episode_id].push({ label: 'Remedial', status: 'remedial' });
+        }
+      }
 
-      if (ev.episode_id && ev.mission_id) {
-        if (!s.missions[ev.episode_id]) s.missions[ev.episode_id] = [];
-        const md = ev.metadata || {};
+      if (ev.event_type === 'question_attempt') {
+        const h = ev.hints_used || 0;
+        s.hints += h;
 
-        if (ev.event_type === 'QUESTION_ANSWERED') {
-          s.missions[ev.episode_id].push({ label: `Q:${ev.mission_id}`, status: md.isCorrect ? 'pass' : 'fail' });
-          s.questions[ev.mission_id] = md.isCorrect ? 'correct' : 'incorrect';
+        if (ev.episode_id && ev.question_id) {
+          if (!s.missions[ev.episode_id]) s.missions[ev.episode_id] = [];
 
-          if (md.confidence_level) {
-            let c = md.confidence_level === 'High' ? 90 : (md.confidence_level === 'Medium' ? 50 : 20);
-            let corr = md.isCorrect ? 100 : 10;
+          s.missions[ev.episode_id].push({ label: `Q:${ev.question_id}`, status: ev.is_correct ? 'pass' : 'fail' });
+          s.questions[ev.question_id] = ev.is_correct ? 'correct' : 'incorrect';
+
+          if (ev.is_correct) {
+            const diff = ev.difficulty_level || 'Easy';
+            if (diff === 'Easy') s.totalXP += 100;
+            else if (diff === 'Medium') s.totalXP += 150;
+            else if (diff === 'Hard') s.totalXP += 200;
+          }
+
+          if (h > 0) {
+            s.missions[ev.episode_id].push({ label: 'Hint', status: 'hint' });
+            if (s.questions[ev.question_id] === 'correct') s.questions[ev.question_id] = 'hint';
+          }
+
+          if (ev.confidence_level) {
+            const cl = ev.confidence_level.toLowerCase();
+            let c = cl === 'tinggi' ? 90 : (cl === 'sedang' ? 50 : 20);
+            let corr = ev.is_correct ? 100 : 10;
             confScatter.push({
-              name: ev.mission_id,
+              name: ev.question_id,
               confidence: c,
               correctness: corr,
-              label: md.isCorrect ? 'Benar' : 'Salah'
+              label: ev.is_correct ? 'Benar' : 'Salah'
             });
           }
 
-          const bl = md.bloom_level || 'C1';
+          // Placeholder for Bloom mapping, using difficulty level for now or default
+          const bl = ev.difficulty_level || 'C1';
           if (bloomMap[bl]) {
             bloomMap[bl].t++;
-            if (md.isCorrect) bloomMap[bl].c++;
+            if (ev.is_correct) bloomMap[bl].c++;
           }
-        }
-        if (ev.event_type === 'HINT_USED') {
-          s.missions[ev.episode_id].push({ label: 'Hint', status: 'hint' });
-          if (s.questions[ev.mission_id] === 'correct') s.questions[ev.mission_id] = 'hint';
-        }
-        if (ev.event_type === 'REMEDIAL_TRIGGERED') {
-          s.missions[ev.episode_id].push({ label: 'Remedial', status: 'remedial' });
         }
       }
 
@@ -140,9 +131,13 @@ export async function fetchTeacherMetrics(class_code = null) {
 
     // 3. Finalize Data Formats for UI
     const heatQs = new Set();
+    let totalXPAll = 0;
+    let studentsBelow70 = 0;
+    let studentsAbove90 = 0;
     studentMap.forEach((s) => {
       Object.keys(s.questions).forEach(q => heatQs.add(q));
       totalEpsCompleted += s.episodesCompleted.size;
+      totalXPAll += s.totalXP;
 
       const eps = [];
       for (let ep in s.missions) {
@@ -150,17 +145,32 @@ export async function fetchTeacherMetrics(class_code = null) {
       }
       if (eps.length > 0) metrics.learningJourney.push({ name: s.name, episodes: eps });
 
+      // Update intervention logic
+      if (s.remedials >= 2 || s.hints >= 3 || (s.timeSec > 600 && s.totalXP < 200)) {
+        studentsBelow70++;
+      }
+      if (s.totalXP >= 500) {
+        studentsAbove90++;
+      }
+
       metrics.adaptiveStats.hint += s.hints;
       metrics.adaptiveStats.remedial += s.remedials;
-      if (s.hints === 0 && s.remedials === 0 && s.mastery > 0) metrics.adaptiveStats.fastTrack++;
+      if (s.episodesCompleted.size === 4) metrics.adaptiveStats.completionRate++;
+      if (s.remedials > 0) metrics.adaptiveStats.struggling++;
+      if (s.hints === 0 && s.remedials === 0 && s.totalXP > 0) metrics.adaptiveStats.fastTrack++;
     });
 
+    metrics.overview.averageScore = Math.round(totalXPAll / students.length) || 0;
+    metrics.overview.studentsNeedIntervention = studentsBelow70;
+    metrics.overview.highPerformers = studentsAbove90;
+    metrics.adaptiveStats.completionRate = Math.round((metrics.adaptiveStats.completionRate / students.length) * 100) || 0;
+
     // Heatmap formatting
-    const allQ = Array.from(heatQs).slice(0, 10);
+    const allQ = Array.from(heatQs);
     if (allQ.length === 0) allQ.push('Q1');
     metrics.heatmap = [];
     studentMap.forEach((s) => {
-      const hmRow = { name: s.name.split(' ')[0] };
+      const hmRow = { name: s.name.split(' ')[0], isActive: s.isActive };
       allQ.forEach(q => {
         hmRow[q] = s.questions[q] || 'empty';
       });
@@ -219,7 +229,7 @@ export async function fetchTeacherMetrics(class_code = null) {
     if (metrics.misconceptions.length > 0) {
       const topM = metrics.misconceptions[0];
       metrics.aiInsightFull = {
-        sentiment: `Ditemukan pola miskonsepsi "${topM.tag}". murid seperti ${topM.affected.join(', ')} kesulitan membedakan konsep dasarnya.`,
+        sentiment: `Ditemukan pola miskonsepsi "${topM.tag}". Murid seperti ${topM.affected.join(', ')} kesulitan membedakan konsep dasarnya.`,
         adaptive: "Sistem mengaktifkan rekomendasi adaptif: Memprioritaskan soal pendukung dan menyediakan scaffolding tambahan pada topik ini."
       };
       metrics.aiInsight = {
@@ -233,16 +243,17 @@ export async function fetchTeacherMetrics(class_code = null) {
       metrics.aiInsight = { headline: "Semua Normal", detail: "Pemahaman kelas stabil", recommendations: ["Lanjutkan misi"], interventions: [] };
     }
 
-    const sorted = Array.from(studentMap.values()).sort((a, b) => b.mastery - a.mastery);
+    const sorted = Array.from(studentMap.values()).sort((a, b) => b.totalXP - a.totalXP);
 
     metrics.studentsList = sorted.map(s => ({
       name: s.name,
       nis: s.nis,
-      score: Math.round(s.mastery),
+      score: s.totalXP,
+      progress: s.episodesCompleted.size * 25,
       episodesCompleted: s.episodesCompleted.size,
       hintsUsed: s.hints,
       remedials: s.remedials,
-      isActive: s.is_active
+      isActive: s.isActive
     }));
 
     if (sorted.length > 0) {
@@ -291,14 +302,15 @@ function getEmptyData() {
   };
 }
 
-export async function approveStudent(nis) {
+export async function toggleStudentStatus(nis, currentStatus) {
   if (!supabase) return false;
   try {
-    const { error } = await supabase.from('cq_students').update({ is_active: true }).eq('nis', nis);
+    const newStatus = !currentStatus;
+    const { error } = await supabase.from('cq_students').update({ is_active: newStatus }).eq('nis', nis);
     if (error) throw error;
     return true;
   } catch (error) {
-    console.error('Gagal menyetujui murid:', error);
+    console.error('Gagal merubah status murid:', error);
     return false;
   }
 }

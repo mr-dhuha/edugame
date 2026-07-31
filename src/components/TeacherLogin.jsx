@@ -53,6 +53,11 @@ export default function TeacherLogin() {
 
   return (
     <div style={styles.container}>
+      {/* Background Image Layer */}
+      <div style={{ position: 'absolute', top: 0, left: 0, right: 0, bottom: 0, background: 'url(/map_bg.png) center center / cover no-repeat fixed', zIndex: 0 }} />
+      {/* Overlay with Frosted Glass Effect */}
+      <div style={{ position: 'absolute', top: 0, left: 0, right: 0, bottom: 0, backgroundColor: 'rgba(255,255,255,0.5)', backdropFilter: 'blur(3px)', WebkitBackdropFilter: 'blur(3px)', zIndex: 1 }} />
+      
       {/* Dynamic Background Elements */}
       <div style={styles.bgCircle1}></div>
       <div style={styles.bgCircle2}></div>
@@ -131,7 +136,6 @@ const styles = {
     display: 'flex',
     alignItems: 'center',
     justifyContent: 'center',
-    backgroundColor: '#f8fafc',
     position: 'relative',
     overflow: 'hidden',
     fontFamily: "'Inter', sans-serif"
@@ -144,7 +148,7 @@ const styles = {
     height: '500px',
     borderRadius: '50%',
     background: 'radial-gradient(circle, rgba(37,99,235,0.1) 0%, rgba(248,250,252,0) 70%)',
-    zIndex: 1
+    zIndex: 2
   },
   bgCircle2: {
     position: 'absolute',
@@ -154,17 +158,17 @@ const styles = {
     height: '600px',
     borderRadius: '50%',
     background: 'radial-gradient(circle, rgba(16,185,129,0.1) 0%, rgba(248,250,252,0) 70%)',
-    zIndex: 1
+    zIndex: 2
   },
   card: {
-    backgroundColor: '#ffffff',
-    padding: '40px',
+    backgroundColor: 'rgba(255, 255, 255, 0.85)',
     borderRadius: '24px',
-    boxShadow: '0 20px 40px -10px rgba(0,0,0,0.1), 0 10px 20px -5px rgba(0,0,0,0.05)',
+    padding: '48px',
     width: '100%',
-    maxWidth: '420px',
+    maxWidth: '480px',
+    boxShadow: '0 20px 40px rgba(0, 0, 0, 0.1)',
+    zIndex: 3,
     position: 'relative',
-    zIndex: 2,
     border: '1px solid #f1f5f9'
   },
   header: {

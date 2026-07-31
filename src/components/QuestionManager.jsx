@@ -33,7 +33,24 @@ export default function QuestionManager() {
 
   const handleEdit = (q) => {
     setEditingId(q.id);
-    setFormData(q);
+    let normalizedOptions = [];
+    if (q.options && q.options.length > 0) {
+      if (typeof q.options[0] === 'string') {
+        normalizedOptions = q.options.map((opt, idx) => ({
+          label: String.fromCharCode(65 + idx),
+          text: opt,
+          isCorrect: q.answer ? opt === q.answer : (q.correct_option ? opt === q.correct_option : false)
+        }));
+      } else {
+        normalizedOptions = [...q.options];
+      }
+    }
+    // Pastikan selalu ada 5 opsi
+    while (normalizedOptions.length < 5) {
+      normalizedOptions.push({ label: String.fromCharCode(65 + normalizedOptions.length), text: '', isCorrect: false });
+    }
+
+    setFormData({ ...q, options: normalizedOptions });
     setIsAdding(false);
   };
 

@@ -2,7 +2,8 @@ import React, { useState } from 'react';
 import { fsm, STATES } from '../core/FSMEngine';
 import { playerModel } from '../core/PlayerModel';
 import { supabase } from '../core/SupabaseClient';
-import { Settings, User, Star, TrendingUp, Trophy, Medal } from 'lucide-react';
+import { Settings, User, Star, TrendingUp, Trophy, Medal, Volume2, VolumeX } from 'lucide-react';
+import { audioEngine } from '../core';
 import './UniversalMenu.css';
 
 export default function UniversalMenu({ fsmState }) {
@@ -15,6 +16,22 @@ export default function UniversalMenu({ fsmState }) {
   const [modalData, setModalData] = useState({ name: '', oldPassword: '', newPassword: '', confirmPassword: '' });
   const [modalError, setModalError] = useState('');
   const [modalLoading, setModalLoading] = useState(false);
+
+  // Audio State
+  const [musicEnabled, setMusicEnabled] = useState(audioEngine.musicEnabled);
+  const [sfxEnabled, setSfxEnabled] = useState(audioEngine.sfxEnabled);
+
+  const toggleMusic = () => {
+    const newVal = !musicEnabled;
+    setMusicEnabled(newVal);
+    audioEngine.toggleMusic(newVal);
+  };
+
+  const toggleSfx = () => {
+    const newVal = !sfxEnabled;
+    setSfxEnabled(newVal);
+    audioEngine.toggleSFX(newVal);
+  };
 
   // Don't show menu on Login or Init
   if (fsmState === STATES.INIT || fsmState === STATES.LOGIN) return null;
@@ -160,6 +177,28 @@ export default function UniversalMenu({ fsmState }) {
                   <button className="um-btn danger" onClick={handleLogout}>Keluar (Logout)</button>
                 </div>
 
+                <div style={{ marginTop: '20px', padding: '16px', background: 'rgba(255,255,255,0.6)', borderRadius: '12px', border: '1px solid rgba(59,42,26,0.1)' }}>
+                  <h3 style={{ margin: '0 0 12px 0', fontSize: '0.9rem', color: '#3b2a1a', textTransform: 'uppercase', fontFamily: "'Inter', sans-serif" }}>Pengaturan Audio</h3>
+                  
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '12px' }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px', color: '#6b5a4a', fontSize: '0.9rem', fontWeight: 'bold' }}>
+                      {musicEnabled ? <Volume2 size={18} /> : <VolumeX size={18} />} Musik Latar
+                    </div>
+                    <button onClick={toggleMusic} style={{ padding: '6px 16px', borderRadius: '20px', border: 'none', background: musicEnabled ? '#2a6f8f' : '#ccc', color: '#fff', fontWeight: 'bold', cursor: 'pointer', transition: 'background 0.3s' }}>
+                      {musicEnabled ? 'ON' : 'OFF'}
+                    </button>
+                  </div>
+
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '8px', color: '#6b5a4a', fontSize: '0.9rem', fontWeight: 'bold' }}>
+                      {sfxEnabled ? <Volume2 size={18} /> : <VolumeX size={18} />} Efek Suara
+                    </div>
+                    <button onClick={toggleSfx} style={{ padding: '6px 16px', borderRadius: '20px', border: 'none', background: sfxEnabled ? '#d4af37' : '#ccc', color: '#fff', fontWeight: 'bold', cursor: 'pointer', transition: 'background 0.3s' }}>
+                      {sfxEnabled ? 'ON' : 'OFF'}
+                    </button>
+                  </div>
+                </div>
+
                 {showLogoutConfirm && (
                   <div style={{ marginTop: '20px', padding: '16px', background: 'rgba(255,200,200,0.2)', border: '1px solid rgba(255,0,0,0.3)', borderRadius: '12px' }}>
                     <p style={{ margin: '0 0 12px 0', fontSize: '0.95rem', color: '#a34040', fontWeight: 'bold' }}>Yakin ingin keluar?</p>
@@ -215,26 +254,7 @@ export default function UniversalMenu({ fsmState }) {
                     </div>
                   </div>
 
-                  {/* Badges Section */}
-                  <div style={{ background: 'rgba(255,255,255,0.4)', padding: '16px', borderRadius: '12px', border: '1px solid rgba(59,42,26,0.1)' }}>
-                    <h4 style={{ margin: '0 0 12px 0', color: '#2a6f8f', fontFamily: "'Cinzel Decorative', serif", fontSize: '1rem', display: 'flex', alignItems: 'center', gap: '8px' }}>
-                      <Trophy size={20} /> Koleksi Lencana
-                    </h4>
-                    <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
-                      {playerState.earnedBadges.size > 0 ? (
-                        Array.from(playerState.earnedBadges).map(b => (
-                          <div key={b} style={{ display: 'flex', alignItems: 'center', gap: '6px', padding: '6px 12px', background: 'linear-gradient(to bottom, #fff8e1, #ffe082)', borderRadius: '20px', border: '1px solid #ffd54f', boxShadow: '0 2px 4px rgba(0,0,0,0.05)' }}>
-                            <Medal size={16} fill="#ffd700" color="#b38b22" />
-                            <span style={{ fontSize: '0.85rem', color: '#5d4037', fontWeight: 'bold', fontFamily: "'Inter', sans-serif" }}>{formatBadgeName(b)}</span>
-                          </div>
-                        ))
-                      ) : (
-                        <div style={{ width: '100%', padding: '16px', textAlign: 'center', background: 'rgba(255,255,255,0.5)', borderRadius: '8px', border: '1px dashed rgba(59,42,26,0.2)', color: '#6b5a4a', fontSize: '0.9rem', fontFamily: "'Inter', sans-serif" }}>
-                          Belum ada lencana yang terkumpul.<br />Ayo selesaikan misimu!
-                        </div>
-                      )}
-                    </div>
-                  </div>
+
                 </div>
                 <button className="um-btn primary" onClick={() => setShowStats(false)} style={{ marginTop: '20px', width: '100%' }}>Kembali</button>
               </>

@@ -48,6 +48,12 @@ export default function LoginScreen() {
             return;
           }
 
+          if (existingStudent.is_active === false) {
+            setError('Akun Anda sedang dinonaktifkan oleh Guru. Silakan hubungi Guru Anda.');
+            setLoading(false);
+            return;
+          }
+
           // Login berhasil
           playerModel.setProfile(existingStudent.nis, existingStudent.name);
           await playerModel.syncFromSupabase(existingStudent.nis, supabase);
@@ -90,10 +96,10 @@ export default function LoginScreen() {
   };
 
   return (
-    <div style={{ width: '100%', minHeight: '100vh', minHeight: '100dvh', background: 'url(/img/bg_jungle.png) center center / cover no-repeat', display: 'flex', flexDirection: 'column', justifyContent: 'center', padding: '24px 20px', position: 'relative' }}>
+    <div style={{ width: '100%', minHeight: '100vh', minHeight: '100dvh', background: 'url(/map_bg.png) center center / cover no-repeat fixed', display: 'flex', flexDirection: 'column', justifyContent: 'center', padding: '24px 20px', position: 'relative' }}>
 
       {/* Overlay to ensure readability */}
-      <div style={{ position: 'absolute', top: 0, left: 0, right: 0, bottom: 0, backgroundColor: 'rgba(244,228,193,0.85)', zIndex: 0 }} />
+      <div style={{ position: 'absolute', top: 0, left: 0, right: 0, bottom: 0, backgroundColor: 'rgba(255,255,255,0.5)', backdropFilter: 'blur(3px)', WebkitBackdropFilter: 'blur(3px)', zIndex: 0 }} />
 
       <div style={{ position: 'relative', zIndex: 1, maxWidth: '400px', margin: '0 auto', width: '100%' }}>
 

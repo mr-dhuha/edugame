@@ -1,11 +1,13 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { LogOut, LayoutDashboard, Route, Grid, AlertTriangle, Brain, Trophy, Users, Lightbulb, TrendingUp, AlertCircle, Sparkles, CheckCircle, XCircle, Circle, Medal, Star, Database, Download } from 'lucide-react';
-import { fetchTeacherMetrics, approveStudent } from '../core/TeacherEngine';
+import { LogOut, LayoutDashboard, Route, Grid, AlertTriangle, Brain, Trophy, Users, Lightbulb, TrendingUp, AlertCircle, Sparkles, CheckCircle, XCircle, Circle, Medal, Star, Database, Download, Power, PowerOff } from 'lucide-react';
+import { fetchTeacherMetrics, toggleStudentStatus } from '../core/TeacherEngine';
 import { AIClient } from '../core/AIClient';
 import QuestionManager from './QuestionManager';
-import { ScatterChart, Scatter, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Radar, RadarChart, PolarGrid, PolarAngleAxis, PolarRadiusAxis } from 'recharts';
+import { ScatterChart, Scatter, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Radar, RadarChart, PolarGrid, PolarAngleAxis, PolarRadiusAxis, BarChart, Bar } from 'recharts';
 import * as XLSX from 'xlsx';
+import questionsData from '../data/questions.json';
+import { supabase } from '../core/SupabaseClient';
 import './TeacherDashboard.css';
 
 export default function TeacherDashboard() {
@@ -15,6 +17,16 @@ export default function TeacherDashboard() {
   const [loading, setLoading] = useState(true);
   const [realAiInsight, setRealAiInsight] = useState(null);
   const [isAiLoading, setIsAiLoading] = useState(false);
+  const [modalConfig, setModalConfig] = useState(null);
+  
+  const [heatmapSort, setHeatmapSort] = useState('asc');
+  const [heatmapStatusFilter, setHeatmapStatusFilter] = useState('all');
+  const [selectedQuestionModal, setSelectedQuestionModal] = useState(null);
+  const [isLoadingQuestion, setIsLoadingQuestion] = useState(false);
+  
+  const [reportSearchTerm, setReportSearchTerm] = useState('');
+  const [reportSortBy, setReportSortBy] = useState('score_desc');
+  const [reportStatusFilter, setReportStatusFilter] = useState('all');
 
   useEffect(() => {
     const sessionStr = localStorage.getItem('teacherSession');
@@ -26,12 +38,46 @@ export default function TeacherDashboard() {
     fetchTeacherMetrics(sessionData.class_code).then(data => {
       setMetrics(data);
       setLoading(false);
+
+      const cachedAiStr = localStorage.getItem(`cq_ai_insight_${sessionData.class_code}`);
+      if (cachedAiStr) {
+        try {
+          const cachedAi = JSON.parse(cachedAiStr);
+          setRealAiInsight(cachedAi.data);
+        } catch(e) {
+          console.error('Failed to parse cached AI insight', e);
+        }
+      }
     });
   }, [navigate]);
 
   const handleLogout = () => {
     localStorage.removeItem('teacherSession');
     navigate('/teacher/login');
+  };
+
+  const handleToggleStatus = (nis, currentStatus) => {
+    setModalConfig({
+      isOpen: true,
+      title: currentStatus ? 'Nonaktifkan Murid?' : 'Aktifkan Murid?',
+      message: currentStatus 
+        ? 'Yakin ingin menonaktifkan murid ini? Mereka tidak akan bisa masuk ke dalam game sementara waktu.' 
+        : 'Yakin ingin mengaktifkan kembali murid ini sehingga bisa bermain kembali?',
+      onConfirm: async () => {
+        setModalConfig(null);
+        const success = await toggleStudentStatus(nis, currentStatus);
+        if (success) {
+          const sessionStr = localStorage.getItem('teacherSession');
+          if (sessionStr) {
+            const sessionData = JSON.parse(sessionStr);
+            fetchTeacherMetrics(sessionData.class_code).then(setMetrics);
+          }
+        } else {
+          alert('Gagal merubah status murid. Silakan coba lagi.');
+        }
+      },
+      onCancel: () => setModalConfig(null)
+    });
   };
 
   const handleGenerateAI = async () => {
@@ -45,6 +91,15 @@ export default function TeacherDashboard() {
       };
       const result = await AIClient.generateDashboardInsights(classData);
       setRealAiInsight(result);
+      
+      const sessionStr = localStorage.getItem('teacherSession');
+      if (sessionStr) {
+        const sessionData = JSON.parse(sessionStr);
+        localStorage.setItem(`cq_ai_insight_${sessionData.class_code}`, JSON.stringify({
+          data: result,
+          timestamp: Date.now()
+        }));
+      }
     } catch (err) {
       console.error(err);
       alert('Gagal menyusun AI insight.');
@@ -71,6 +126,45 @@ export default function TeacherDashboard() {
     XLSX.writeFile(workbook, "Laporan_murid_ChemQuest.xlsx");
   };
 
+  const handleViewQuestion = async (qId) => {
+    setIsLoadingQuestion(true);
+    setSelectedQuestionModal({ id: qId, loading: true });
+    
+    let qData = questionsData.find(q => q.id === qId);
+    if (!qData && supabase) {
+      try {
+        const { data } = await supabase.from('questions').select('*').eq('id', qId).single();
+        if (data) qData = data;
+      } catch(e) {
+        console.error(e);
+      }
+    }
+
+    if (qData) {
+      setSelectedQuestionModal({ id: qId, data: qData, loading: false });
+    } else {
+      setSelectedQuestionModal({ id: qId, error: 'Soal tidak ditemukan.', loading: false });
+    }
+    setIsLoadingQuestion(false);
+  };
+
+  const scoreDistributionData = useMemo(() => {
+    if (!metrics || !metrics.studentsList) return [];
+    const dist = { '0-499': 0, '500-999': 0, '1000-1499': 0, '1500+': 0 };
+    metrics.studentsList.forEach(s => {
+      if (s.score < 500) dist['0-499']++;
+      else if (s.score < 1000) dist['500-999']++;
+      else if (s.score < 1500) dist['1000-1499']++;
+      else dist['1500+']++;
+    });
+    return [
+      { range: '0-499', count: dist['0-499'] },
+      { range: '500-999', count: dist['500-999'] },
+      { range: '1000-1499', count: dist['1000-1499'] },
+      { range: '1500+', count: dist['1500+'] }
+    ];
+  }, [metrics]);
+
   if (loading) return <div className="td-empty-state">Menganalisis data kelas...</div>;
   if (!metrics) return <div className="td-empty-state">Gagal memuat data.</div>;
 
@@ -94,13 +188,11 @@ export default function TeacherDashboard() {
         {/* SIDEBAR */}
         <aside className="td-sidebar">
           <NavBtn id="overview" icon={<LayoutDashboard size={18} />} label="Overview" active={activeTab} set={setActiveTab} />
-          <NavBtn id="journey" icon={<Route size={18} />} label="Learning Journey" active={activeTab} set={setActiveTab} />
           <NavBtn id="heatmap" icon={<Grid size={18} />} label="Class Heatmap" active={activeTab} set={setActiveTab} />
           <NavBtn id="diagnosis" icon={<AlertTriangle size={18} />} label="Diagnosis & Misconceptions" active={activeTab} set={setActiveTab} />
           <NavBtn id="reports" icon={<Users size={18} />} label="Laporan murid" active={activeTab} set={setActiveTab} />
           <NavBtn id="questions" icon={<Database size={18} />} label="Bank Soal" active={activeTab} set={setActiveTab} />
           <NavBtn id="ai" icon={<Brain size={18} />} label="Asisten Pintar & Adaptif" active={activeTab} set={setActiveTab} />
-          <NavBtn id="awards" icon={<Trophy size={18} />} label="Reflections & Leaderboard" active={activeTab} set={setActiveTab} />
         </aside>
 
         {/* CONTENT AREA */}
@@ -111,7 +203,7 @@ export default function TeacherDashboard() {
             <div className="td-fade-in">
               <div className="td-stats-grid">
                 <StatCard label="Class Progress" value={`${metrics.overview.classProgressPct}%`} icon={<TrendingUp />} color="var(--primary)" />
-                <StatCard label="Average Score" value={metrics.overview.averageScore} icon={<Trophy />} color="var(--success)" />
+                <StatCard label="Average XP" value={metrics.overview.averageScore} icon={<Trophy />} color="var(--success)" />
                 <StatCard label="Episode Completion" value={`${metrics.overview.episodeCompletionPct}%`} icon={<CheckCircle />} color="var(--info)" />
                 <StatCard label="Need Intervention" value={metrics.overview.studentsNeedIntervention} icon={<AlertCircle />} color="var(--danger)" />
               </div>
@@ -160,44 +252,66 @@ export default function TeacherDashboard() {
                         <strong>murid Butuh Perhatian: </strong>
                         {metrics.overview.studentsNeedIntervention > 0 ? `${metrics.overview.studentsNeedIntervention} murid (Lihat Heatmap)` : 'Tidak Ada'}
                       </div>
+                      <div style={{ marginTop: '16px', textAlign: 'right' }}>
+                        <button
+                          onClick={handleGenerateAI}
+                          disabled={isAiLoading}
+                          style={{ padding: '8px 16px', backgroundColor: 'transparent', border: '1px solid #f59e0b', color: '#f59e0b', borderRadius: '8px', cursor: isAiLoading ? 'wait' : 'pointer', fontWeight: 'bold' }}
+                        >
+                          {isAiLoading ? 'Memperbarui...' : 'Perbarui Analisis'}
+                        </button>
+                      </div>
                     </div>
                   )}
                 </div>
               </div>
-            </div>
-          )}
 
-          {/* LEARNING JOURNEY */}
-          {activeTab === 'journey' && (
-            <div className="td-fade-in td-card">
-              <h2 className="td-section-title">Student Learning Journey</h2>
-              <p className="td-section-subtitle">Timeline perjalanan per murid di setiap episode.</p>
-
-              <div className="td-journey-list">
-                {metrics.learningJourney.map((student, i) => (
-                  <div key={i} className="td-journey-student">
-                    <h4 className="journey-name">{student.name}</h4>
-                    {student.episodes.map(ep => (
-                      <div key={ep.id} className="journey-episode">
-                        <div className="journey-ep-title">Episode {ep.id}</div>
-                        <div className="journey-timeline">
-                          {ep.missions.map((m, idx) => (
-                            <React.Fragment key={idx}>
-                              <div className={`journey-node ${m.status}`} title={m.label}>
-                                {m.status === 'pass' && <CheckCircle size={14} color="#fff" />}
-                                {m.status === 'complete' && <Trophy size={14} color="#fff" />}
-                                {m.status === 'fail' && <XCircle size={14} color="#fff" />}
-                                {m.status === 'hint' && <Lightbulb size={12} color="#fff" />}
-                                {m.status === 'remedial' && <AlertTriangle size={14} color="#fff" />}
-                              </div>
-                              {idx < ep.missions.length - 1 && <div className="journey-line"></div>}
-                            </React.Fragment>
-                          ))}
-                        </div>
-                      </div>
-                    ))}
+              {/* DISTRIBUSI & PERHATIAN */}
+              <div className="td-grid-2" style={{ marginTop: '24px' }}>
+                <div className="td-card">
+                  <h3 className="td-card-title">Distribusi Skor Mastery</h3>
+                  <div style={{ height: '220px', width: '100%', marginTop: '16px' }}>
+                    <ResponsiveContainer>
+                      <BarChart data={scoreDistributionData} margin={{ top: 10, right: 10, left: -20, bottom: 0 }}>
+                        <CartesianGrid strokeDasharray="3 3" vertical={false} />
+                        <XAxis dataKey="range" tick={{ fontSize: 12, fill: '#6b5a4a' }} axisLine={false} tickLine={false} />
+                        <YAxis tick={{ fontSize: 12, fill: '#6b5a4a' }} axisLine={false} tickLine={false} />
+                        <Tooltip cursor={{ fill: 'rgba(42,111,143,0.05)' }} contentStyle={{ borderRadius: '8px', border: 'none', boxShadow: '0 4px 12px rgba(0,0,0,0.1)' }} />
+                        <Bar dataKey="count" fill="#2a6f8f" radius={[6, 6, 0, 0]} name="Jumlah Siswa" />
+                      </BarChart>
+                    </ResponsiveContainer>
                   </div>
-                ))}
+                </div>
+
+                <div className="td-card">
+                  <h3 className="td-card-title">Siswa Butuh Perhatian (Skor &lt; 70)</h3>
+                  <div style={{ marginTop: '16px', display: 'flex', flexDirection: 'column', gap: '12px', maxHeight: '220px', overflowY: 'auto', paddingRight: '8px' }}>
+                    {(() => {
+                      const needsAttention = metrics.studentsList.filter(s => s.score < 70).sort((a,b) => a.score - b.score);
+                      if (needsAttention.length > 0) {
+                        return needsAttention.map((s, i) => (
+                          <div key={i} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '12px', backgroundColor: 'rgba(220,53,69,0.05)', borderRadius: '8px', border: '1px solid rgba(220,53,69,0.1)' }}>
+                            <div style={{ display: 'flex', flexDirection: 'column' }}>
+                              <span style={{ fontWeight: 'bold', color: '#dc3545', fontSize: '0.95rem' }}>{s.name}</span>
+                              <span style={{ fontSize: '0.8rem', color: '#6b5a4a' }}>NIS: {s.nis}</span>
+                            </div>
+                            <div style={{ textAlign: 'right' }}>
+                              <span style={{ fontSize: '1.2rem', fontWeight: 'bold', color: '#dc3545' }}>{s.score}</span>
+                              <span style={{ display: 'block', fontSize: '0.75rem', color: '#dc3545' }}>Total XP</span>
+                            </div>
+                          </div>
+                        ));
+                      } else {
+                        return (
+                          <div style={{ textAlign: 'center', padding: '40px 0', color: '#6b5a4a' }}>
+                            <CheckCircle size={32} color="#2a6f3f" style={{ margin: '0 auto 12px', display: 'block', opacity: 0.5 }} />
+                            <p style={{ margin: 0, fontSize: '0.95rem' }}>Bagus! Tidak ada siswa yang butuh intervensi.</p>
+                          </div>
+                        );
+                      }
+                    })()}
+                  </div>
+                </div>
               </div>
             </div>
           )}
@@ -205,8 +319,23 @@ export default function TeacherDashboard() {
           {/* HEATMAP */}
           {activeTab === 'heatmap' && (
             <div className="td-fade-in td-card">
-              <h2 className="td-section-title">Heatmap Kelas</h2>
-              <p className="td-section-subtitle">Matriks jawaban murid per pertanyaan untuk identifikasi cepat.</p>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                <div>
+                  <h2 className="td-section-title">Heatmap Kelas</h2>
+                  <p className="td-section-subtitle">Matriks jawaban murid per pertanyaan untuk identifikasi cepat.</p>
+                </div>
+                <div style={{ display: 'flex', gap: '12px' }}>
+                  <select value={heatmapSort} onChange={(e) => setHeatmapSort(e.target.value)} style={{ padding: '8px', borderRadius: '6px', border: '1px solid #ccc' }}>
+                    <option value="asc">Nama (A-Z)</option>
+                    <option value="desc">Nama (Z-A)</option>
+                  </select>
+                  <select value={heatmapStatusFilter} onChange={(e) => setHeatmapStatusFilter(e.target.value)} style={{ padding: '8px', borderRadius: '6px', border: '1px solid #ccc' }}>
+                    <option value="all">Semua Status</option>
+                    <option value="active">Aktif Saja</option>
+                    <option value="inactive">Nonaktif Saja</option>
+                  </select>
+                </div>
+              </div>
 
               <div className="heatmap-legend">
                 <span className="legend-item"><div className="hm-box correct"></div> Benar</span>
@@ -221,21 +350,44 @@ export default function TeacherDashboard() {
                     <tr>
                       <th>murid</th>
                       {metrics.heatmap.length > 0 && Object.keys(metrics.heatmap[0])
-                        .filter(k => k !== 'name')
-                        .map(q => <th key={q}>{q.toUpperCase()}</th>)}
+                        .filter(k => k !== 'name' && k !== 'isActive')
+                        .map(q => (
+                          <th 
+                            key={q} 
+                            style={{ cursor: 'pointer', color: '#2a6f8f', textDecoration: 'underline' }} 
+                            onClick={() => handleViewQuestion(q)}
+                            title="Klik untuk melihat detail soal"
+                          >
+                            {q}
+                          </th>
+                        ))}
                     </tr>
                   </thead>
                   <tbody>
-                    {metrics.heatmap.map((row, i) => (
-                      <tr key={i}>
-                        <td className="hm-name">{row.name}</td>
-                        {Object.keys(row)
-                          .filter(k => k !== 'name')
-                          .map(q => (
-                            <td key={q}><div className={`hm-cell ${row[q]}`}></div></td>
-                          ))}
-                      </tr>
-                    ))}
+                    {(() => {
+                      let displayedHeatmap = [...metrics.heatmap];
+                      if (heatmapStatusFilter === 'active') {
+                        displayedHeatmap = displayedHeatmap.filter(r => r.isActive);
+                      } else if (heatmapStatusFilter === 'inactive') {
+                        displayedHeatmap = displayedHeatmap.filter(r => !r.isActive);
+                      }
+                    
+                      displayedHeatmap.sort((a, b) => {
+                        if (heatmapSort === 'asc') return a.name.localeCompare(b.name);
+                        return b.name.localeCompare(a.name);
+                      });
+
+                      return displayedHeatmap.map((row, i) => (
+                        <tr key={i}>
+                          <td className="hm-name">{row.name}</td>
+                          {Object.keys(row)
+                            .filter(k => k !== 'name' && k !== 'isActive')
+                            .map(q => (
+                              <td key={q}><div className={`hm-cell ${row[q]}`}></div></td>
+                            ))}
+                        </tr>
+                      ));
+                    })()}
                   </tbody>
                 </table>
               </div>
@@ -311,7 +463,7 @@ export default function TeacherDashboard() {
           {activeTab === 'ai' && (
             <div className="td-fade-in td-grid-2">
               <div className="td-card ai-insight-card" style={{ gridColumn: '1 / -1' }}>
-                <h3 className="td-card-title"><Brain size={20} color="#f59e0b" style={{ marginRight: 8 }} /> Diagnosis Pintar Penuh</h3>
+                <h3 className="td-card-title"><Brain size={20} color="#f59e0b" style={{ marginRight: 8 }} /> Diagnosis Lengkap</h3>
                 <div className="ai-insight-content large">
                   <p><strong>Analisis Sentimen Kelas:</strong> {metrics.aiInsightFull?.sentiment || "Sedang menganalisis sentimen..."}</p>
                   <p><strong>Rekomendasi Adaptif:</strong> {metrics.aiInsightFull?.adaptive || "Sedang menyiapkan rekomendasi..."}</p>
@@ -343,36 +495,41 @@ export default function TeacherDashboard() {
             </div>
           )}
 
-          {/* AWARDS */}
-          {activeTab === 'awards' && (
-            <div className="td-fade-in td-card">
-              <h2 className="td-section-title">Student Leaderboard</h2>
-              <p className="td-section-subtitle">Apresiasi berdasarkan pencapaian unik, bukan sekadar nilai tertinggi.</p>
-
-              <div className="awards-grid">
-                <AwardCard title="Top Explorer" icon={metrics.leaderboard.topExplorer.icon} student={metrics.leaderboard.topExplorer.name} detail={metrics.leaderboard.topExplorer.detail} />
-                <AwardCard title="Fast Learner" icon={metrics.leaderboard.fastLearner.icon} student={metrics.leaderboard.fastLearner.name} detail={metrics.leaderboard.fastLearner.detail} />
-                <AwardCard title="Most Improved" icon={metrics.leaderboard.mostImproved.icon} student={metrics.leaderboard.mostImproved.name} detail={metrics.leaderboard.mostImproved.detail} />
-                <AwardCard title="Critical Thinker" icon={metrics.leaderboard.criticalThinker.icon} student={metrics.leaderboard.criticalThinker.name} detail={metrics.leaderboard.criticalThinker.detail} />
-                <AwardCard title="Most Persistent" icon={metrics.leaderboard.mostPersistent.icon} student={metrics.leaderboard.mostPersistent.name} detail={metrics.leaderboard.mostPersistent.detail} />
-              </div>
-            </div>
-          )}
-
           {/* REPORTS TAB */}
           {activeTab === 'reports' && (
             <div className="td-fade-in td-card">
-              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px' }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '20px', flexWrap: 'wrap', gap: '12px' }}>
                 <div>
                   <h2 className="td-section-title">Laporan Lengkap murid</h2>
                   <p className="td-section-subtitle">Daftar roster kelas beserta metrik kinerja individu.</p>
                 </div>
-                <button
-                  onClick={handleDownloadXLSX}
-                  style={{ display: 'flex', alignItems: 'center', gap: '8px', padding: '10px 16px', backgroundColor: '#2a6f3f', color: '#fff', border: 'none', borderRadius: '8px', cursor: 'pointer', fontWeight: 'bold' }}
-                >
-                  <Download size={18} /> Export XLSX
-                </button>
+                
+                <div style={{ display: 'flex', gap: '12px', flexWrap: 'wrap' }}>
+                  <input 
+                    type="text" 
+                    placeholder="Cari nama atau NIS..." 
+                    value={reportSearchTerm} 
+                    onChange={(e) => setReportSearchTerm(e.target.value)}
+                    style={{ padding: '8px', borderRadius: '6px', border: '1px solid #ccc', minWidth: '200px' }}
+                  />
+                  <select value={reportSortBy} onChange={(e) => setReportSortBy(e.target.value)} style={{ padding: '8px', borderRadius: '6px', border: '1px solid #ccc' }}>
+                    <option value="score_desc">Skor (Tertinggi)</option>
+                    <option value="score_asc">Skor (Terendah)</option>
+                    <option value="name_asc">Nama (A-Z)</option>
+                    <option value="name_desc">Nama (Z-A)</option>
+                  </select>
+                  <select value={reportStatusFilter} onChange={(e) => setReportStatusFilter(e.target.value)} style={{ padding: '8px', borderRadius: '6px', border: '1px solid #ccc' }}>
+                    <option value="all">Semua Status</option>
+                    <option value="active">Aktif</option>
+                    <option value="inactive">Nonaktif</option>
+                  </select>
+                  <button
+                    onClick={handleDownloadXLSX}
+                    style={{ display: 'flex', alignItems: 'center', gap: '8px', padding: '10px 16px', backgroundColor: '#2a6f3f', color: '#fff', border: 'none', borderRadius: '8px', cursor: 'pointer', fontWeight: 'bold' }}
+                  >
+                    <Download size={18} /> Export
+                  </button>
+                </div>
               </div>
 
               <div style={{ overflowX: 'auto' }}>
@@ -381,35 +538,87 @@ export default function TeacherDashboard() {
                     <tr style={{ backgroundColor: 'rgba(59,42,26,0.05)', color: '#3b2a1a' }}>
                       <th style={{ padding: '12px 16px', borderBottom: '1px solid #e2d3b3' }}>Nama Lengkap</th>
                       <th style={{ padding: '12px 16px', borderBottom: '1px solid #e2d3b3' }}>NIS</th>
-                      <th style={{ padding: '12px 16px', borderBottom: '1px solid #e2d3b3' }}>Skor Mastery</th>
+                      <th style={{ padding: '12px 16px', borderBottom: '1px solid #e2d3b3' }}>Total XP</th>
                       <th style={{ padding: '12px 16px', borderBottom: '1px solid #e2d3b3' }}>Progress (Episode)</th>
                       <th style={{ padding: '12px 16px', borderBottom: '1px solid #e2d3b3' }}>Bantuan Hint</th>
                       <th style={{ padding: '12px 16px', borderBottom: '1px solid #e2d3b3' }}>Remedial</th>
                       <th style={{ padding: '12px 16px', borderBottom: '1px solid #e2d3b3' }}>Status</th>
+                      <th style={{ padding: '12px 16px', borderBottom: '1px solid #e2d3b3', textAlign: 'center' }}>Aksi</th>
                     </tr>
                   </thead>
                   <tbody>
-                    {metrics.studentsList && metrics.studentsList.length > 0 ? (
-                      metrics.studentsList.map((s, idx) => (
+                    {(() => {
+                      if (!metrics.studentsList) return null;
+                      let displayedReports = [...metrics.studentsList];
+                      
+                      // Search
+                      if (reportSearchTerm) {
+                        const term = reportSearchTerm.toLowerCase();
+                        displayedReports = displayedReports.filter(s => 
+                          s.name.toLowerCase().includes(term) || String(s.nis).toLowerCase().includes(term)
+                        );
+                      }
+                      
+                      // Filter
+                      if (reportStatusFilter === 'active') {
+                        displayedReports = displayedReports.filter(s => s.isActive);
+                      } else if (reportStatusFilter === 'inactive') {
+                        displayedReports = displayedReports.filter(s => !s.isActive);
+                      }
+                      
+                      // Sort
+                      displayedReports.sort((a, b) => {
+                        if (reportSortBy === 'score_desc') return b.score - a.score;
+                        if (reportSortBy === 'score_asc') return a.score - b.score;
+                        if (reportSortBy === 'name_asc') return a.name.localeCompare(b.name);
+                        if (reportSortBy === 'name_desc') return b.name.localeCompare(a.name);
+                        return 0;
+                      });
+
+                      if (displayedReports.length === 0) {
+                        return (
+                          <tr>
+                            <td colSpan="8" style={{ padding: '20px', textAlign: 'center', color: '#6b5a4a' }}>Data murid tidak ditemukan</td>
+                          </tr>
+                        );
+                      }
+
+                      return displayedReports.map((s, idx) => (
                         <tr key={idx} style={{ borderBottom: '1px solid #e2d3b3' }}>
                           <td style={{ padding: '12px 16px', fontWeight: 'bold', color: '#2a6f8f' }}>{s.name}</td>
                           <td style={{ padding: '12px 16px' }}>{s.nis}</td>
                           <td style={{ padding: '12px 16px' }}>
-                            <span style={{ backgroundColor: s.score > 70 ? 'rgba(42,111,63,0.1)' : 'rgba(220,53,69,0.1)', color: s.score > 70 ? '#2a6f3f' : '#dc3545', padding: '4px 8px', borderRadius: '4px', fontWeight: 'bold' }}>
+                            <span style={{ backgroundColor: s.score > 500 ? 'rgba(42,111,63,0.1)' : 'rgba(220,53,69,0.1)', color: s.score > 500 ? '#2a6f3f' : '#dc3545', padding: '4px 8px', borderRadius: '4px', fontWeight: 'bold' }}>
                               {s.score}
                             </span>
                           </td>
                           <td style={{ padding: '12px 16px' }}>{s.episodesCompleted} Ep</td>
                           <td style={{ padding: '12px 16px' }}>{s.hintsUsed} kali</td>
                           <td style={{ padding: '12px 16px' }}>{s.remedials} kali</td>
-                          <td style={{ padding: '12px 16px' }}>{s.isActive ? 'Aktif' : 'Menunggu'}</td>
+                          <td style={{ padding: '12px 16px' }}>{s.isActive ? 'Aktif' : 'Nonaktif'}</td>
+                          <td style={{ padding: '12px 16px', textAlign: 'center' }}>
+                            <button
+                              onClick={() => handleToggleStatus(s.nis, s.isActive)}
+                              style={{
+                                padding: '6px 12px',
+                                border: 'none',
+                                borderRadius: '6px',
+                                background: s.isActive ? 'rgba(220,53,69,0.1)' : 'rgba(42,111,63,0.1)',
+                                color: s.isActive ? '#dc3545' : '#2a6f3f',
+                                cursor: 'pointer',
+                                fontWeight: 'bold',
+                                display: 'inline-flex',
+                                alignItems: 'center',
+                                gap: '4px',
+                                fontSize: '0.8rem'
+                              }}
+                            >
+                              {s.isActive ? <><PowerOff size={14} /> Nonaktifkan</> : <><Power size={14} /> Aktifkan</>}
+                            </button>
+                          </td>
                         </tr>
-                      ))
-                    ) : (
-                      <tr>
-                        <td colSpan="7" style={{ padding: '20px', textAlign: 'center', color: '#6b5a4a' }}>Belum ada data murid</td>
-                      </tr>
-                    )}
+                      ));
+                    })()}
                   </tbody>
                 </table>
               </div>
@@ -420,13 +629,80 @@ export default function TeacherDashboard() {
           {activeTab === 'questions' && (
             <div className="td-fade-in td-card">
               <h2 className="td-section-title">Manajemen Bank Soal</h2>
-              <p className="td-section-subtitle">Pusat pengelolaan soal dari database Supabase.</p>
+              <p className="td-section-subtitle">Pusat pengelolaan soal dari database.</p>
               <QuestionManager />
             </div>
           )}
 
         </main>
       </div>
+
+      {modalConfig && modalConfig.isOpen && (
+        <div style={{ position: 'fixed', top: 0, left: 0, width: '100%', height: '100%', backgroundColor: 'rgba(0,0,0,0.5)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 9999, animation: 'fadeIn 0.2s ease' }}>
+          <div style={{ backgroundColor: '#fff', padding: '24px', borderRadius: '12px', width: '90%', maxWidth: '400px', boxShadow: '0 10px 25px rgba(0,0,0,0.1)' }}>
+            <h3 style={{ marginTop: 0, color: '#3b2a1a', fontSize: '1.2rem', fontFamily: "'Cinzel Decorative', serif" }}>{modalConfig.title}</h3>
+            <p style={{ color: '#6b5a4a', fontSize: '0.95rem', marginBottom: '24px', lineHeight: '1.5' }}>{modalConfig.message}</p>
+            <div style={{ display: 'flex', gap: '12px', justifyContent: 'flex-end' }}>
+              <button 
+                onClick={modalConfig.onCancel} 
+                style={{ padding: '8px 16px', background: 'transparent', border: '1px solid #ccc', borderRadius: '8px', cursor: 'pointer', fontWeight: '500', color: '#666' }}
+              >
+                Batal
+              </button>
+              <button 
+                onClick={modalConfig.onConfirm} 
+                style={{ padding: '8px 16px', background: '#2a6f8f', border: 'none', borderRadius: '8px', cursor: 'pointer', fontWeight: 'bold', color: '#fff' }}
+              >
+                Ya, Lanjutkan
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {selectedQuestionModal && (
+        <div style={{ position: 'fixed', top: 0, left: 0, width: '100%', height: '100%', backgroundColor: 'rgba(0,0,0,0.5)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 10000, animation: 'fadeIn 0.2s ease' }}>
+          <div style={{ backgroundColor: '#fff', padding: '24px', borderRadius: '12px', width: '90%', maxWidth: '600px', boxShadow: '0 10px 25px rgba(0,0,0,0.1)', maxHeight: '80vh', overflowY: 'auto' }}>
+            <h3 style={{ marginTop: 0, color: '#3b2a1a', fontSize: '1.2rem', fontFamily: "'Cinzel Decorative', serif", borderBottom: '1px solid #e2d3b3', paddingBottom: '12px' }}>
+              Detail Soal: {selectedQuestionModal.id}
+            </h3>
+            
+            {selectedQuestionModal.loading ? (
+              <p>Memuat soal...</p>
+            ) : selectedQuestionModal.error ? (
+              <p style={{ color: '#dc3545' }}>{selectedQuestionModal.error}</p>
+            ) : (
+              <div>
+                <p style={{ fontSize: '1rem', color: '#3b2a1a', lineHeight: '1.6', marginBottom: '20px' }}>
+                  {selectedQuestionModal.data.stem || selectedQuestionModal.data.q}
+                </p>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '8px' }}>
+                  {selectedQuestionModal.data.options?.map((opt, i) => {
+                    const isObj = typeof opt === 'object';
+                    const text = isObj ? opt.text : opt;
+                    const isCorrect = isObj ? opt.isCorrect : (opt === selectedQuestionModal.data.answer || opt === selectedQuestionModal.data.correct_option);
+                    return (
+                      <div key={i} style={{ padding: '12px', borderRadius: '8px', border: isCorrect ? '2px solid #2a6f3f' : '1px solid #ccc', backgroundColor: isCorrect ? 'rgba(42,111,63,0.1)' : 'transparent', fontWeight: isCorrect ? 'bold' : 'normal' }}>
+                        {isObj && opt.label ? `${opt.label}. ` : ''}{text}
+                        {isCorrect && <span style={{ marginLeft: '8px', color: '#2a6f3f' }}>✓ (Benar)</span>}
+                      </div>
+                    );
+                  })}
+                </div>
+              </div>
+            )}
+            
+            <div style={{ display: 'flex', justifyContent: 'flex-end', marginTop: '24px' }}>
+              <button 
+                onClick={() => setSelectedQuestionModal(null)} 
+                style={{ padding: '8px 16px', background: '#2a6f8f', border: 'none', borderRadius: '8px', cursor: 'pointer', fontWeight: 'bold', color: '#fff' }}
+              >
+                Tutup
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

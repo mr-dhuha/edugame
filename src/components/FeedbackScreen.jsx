@@ -1,6 +1,7 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { fsm, STATES } from '../core/FSMEngine';
 import { evaluateGate, getNextDifficulty } from '../core/AdaptiveEngine';
+import { audioEngine } from '../core/AudioEngine';
 import misconceptionsData from '../data/misconceptions.json';
 import { eventBus, EVENTS } from '../core/EventBus';
 import { playerModel } from '../core/PlayerModel';
@@ -10,7 +11,7 @@ import { Star, Lightbulb, AlertTriangle } from 'lucide-react';
 import { AIClient } from '../core/AIClient';
 
 // --- Komponen Typewriter Sederhana ---
-const TypewriterText = ({ text, speed = 30 }) => {
+const TypewriterText = ({ text, speed = 30, onComplete }) => {
   const [displayed, setDisplayed] = useState('');
   useEffect(() => {
     setDisplayed('');
@@ -21,9 +22,13 @@ const TypewriterText = ({ text, speed = 30 }) => {
     const interval = setInterval(() => {
       i++;
       setDisplayed(chars.slice(0, i).join(''));
-      if (i >= chars.length) clearInterval(interval);
+      if (i >= chars.length) {
+        clearInterval(interval);
+        if (onComplete) onComplete();
+      }
     }, speed);
     return () => clearInterval(interval);
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [text, speed]);
   return <span>{displayed}</span>;
 };
@@ -33,7 +38,9 @@ export default function FeedbackScreen({ context }) {
   const isCorrect = adaptiveAction.isCorrect;
   const [aiHint, setAiHint] = useState('');
   const [isLoadingHint, setIsLoadingHint] = useState(false);
+  const [isTyping, setIsTyping] = useState(false);
   const [loadingText, setLoadingText] = useState('Tutor sedang membaca jawabanmu...');
+  const hasPlayedSfxRef = useRef(false);
 
   // Efek Rotasi Teks Loading
   useEffect(() => {
@@ -53,11 +60,25 @@ export default function FeedbackScreen({ context }) {
   }, [isLoadingHint]);
 
   useEffect(() => {
+    // Play SFX only once when mounted
+    if (!hasPlayedSfxRef.current) {
+      if (isCorrect) {
+        audioEngine.playSFX('success');
+      } else {
+        audioEngine.playSFX('fail');
+      }
+      hasPlayedSfxRef.current = true;
+    }
+
     if (!isCorrect && !adaptiveAction.isTimeout && adaptiveAction.wrongAnswer) {
       setIsLoadingHint(true);
+      setIsTyping(true); // Mulai typing setelah loading selesai
       AIClient.generateAdaptiveHint(adaptiveAction.questionText, adaptiveAction.wrongAnswer)
         .then(hint => setAiHint(hint))
-        .catch(e => console.error("AI Hint Error:", e))
+        .catch(e => {
+          console.error("AI Hint Error:", e);
+          setIsTyping(false);
+        })
         .finally(() => setIsLoadingHint(false));
     }
   }, [isCorrect, adaptiveAction]);
@@ -113,7 +134,7 @@ export default function FeedbackScreen({ context }) {
               <div style={{ display: 'flex', alignItems: 'center', gap: '8px', marginBottom: '8px', fontSize: '0.95rem', color: '#2a6f8f', fontWeight: 'bold' }}>
                 <img src="/img/robot1.png" alt="" style={{ width: '28px' }} /> Tutor Pendamping
               </div>
-              <TypewriterText text={aiHint} speed={15} />
+              <TypewriterText text={aiHint} speed={15} onComplete={() => setIsTyping(false)} />
             </div>
           ) : (
             adaptiveAction.feedback
@@ -134,9 +155,27 @@ export default function FeedbackScreen({ context }) {
 
       <button
         onClick={handleContinue}
-        style={{ width: '100%', padding: '16px', backgroundColor: '#2a6f8f', color: '#f4e4c1', border: 'none', borderRadius: '12px', cursor: 'pointer', fontFamily: "'Cinzel Decorative', serif", fontSize: '1.1rem', fontWeight: '700', letterSpacing: '1px', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '8px' }}
+        disabled={isLoadingHint || isTyping}
+        style={{ 
+          width: '100%', 
+          padding: '16px', 
+          backgroundColor: (isLoadingHint || isTyping) ? '#9ca3af' : '#2a6f8f', 
+          color: (isLoadingHint || isTyping) ? '#e5e7eb' : '#f4e4c1', 
+          border: 'none', 
+          borderRadius: '12px', 
+          cursor: (isLoadingHint || isTyping) ? 'not-allowed' : 'pointer', 
+          fontFamily: "'Cinzel Decorative', serif", 
+          fontSize: '1.1rem', 
+          fontWeight: '700', 
+          letterSpacing: '1px', 
+          display: 'flex', 
+          alignItems: 'center', 
+          justifyContent: 'center', 
+          gap: '8px',
+          transition: 'all 0.3s ease'
+        }}
       >
-        Lanjut
+        {isLoadingHint ? 'MENUNGGU TUTOR...' : isTyping ? 'MEMBACA PETUNJUK...' : 'LANJUT'}
       </button>
     </div>
   );

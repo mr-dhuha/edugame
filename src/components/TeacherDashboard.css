@@ -17,10 +17,21 @@
   display: flex;
   flex-direction: column;
   height: 100vh;
-  background-color: var(--td-bg);
+  background: url('/map_bg.png') center/cover no-repeat fixed;
   font-family: 'Inter', system-ui, sans-serif;
   color: var(--td-text-main);
   overflow: hidden;
+  position: relative;
+}
+
+.td-container::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: rgba(248, 250, 252, 0.5);
+  backdrop-filter: blur(3px);
+  -webkit-backdrop-filter: blur(3px);
+  z-index: 0;
 }
 
 /* HEADER */
@@ -32,6 +43,7 @@
   background-color: var(--td-surface);
   border-bottom: 1px solid var(--td-border);
   box-shadow: 0 1px 3px rgba(0,0,0,0.05);
+  position: relative;
   z-index: 10;
 }
 .td-header-left {
@@ -80,6 +92,8 @@
   display: flex;
   flex: 1;
   overflow: hidden;
+  position: relative;
+  z-index: 1;
 }
 
 /* SIDEBAR */
@@ -364,10 +378,10 @@
   border-radius: 6px;
   margin: 0 auto;
 }
-.hm-cell.correct { background-color: var(--success); }
-.hm-cell.incorrect { background-color: var(--danger); }
-.hm-cell.hint { background-color: var(--warning); }
-.hm-cell.empty { background-color: var(--empty); }
+.hm-cell.correct, .hm-box.correct { background-color: var(--success); }
+.hm-cell.incorrect, .hm-box.incorrect { background-color: var(--danger); }
+.hm-cell.hint, .hm-box.hint { background-color: var(--warning); }
+.hm-cell.empty, .hm-box.empty { background-color: var(--empty); }
 
 /* MISCONCEPTIONS */
 .misc-list {

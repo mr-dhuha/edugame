@@ -30,7 +30,9 @@ export default function GateScreen({ context }) {
   // To keep it simple, we'll just read from FSM context if we stored it, or recalculate.
   
   const gateResult = context.gateResult || {};
-  const isFailed = gateResult.needsRemediation;
+  const action = gateResult.action || 'REMEDIATION';
+  const isFailed = action === 'REMEDIATION';
+  const isConditional = action === 'CONDITIONAL_PASS';
   
   const [aiMessage, setAiMessage] = useState('');
   const [isLoading, setIsLoading] = useState(true);
@@ -66,33 +68,56 @@ export default function GateScreen({ context }) {
   return (
     <div style={{ width: '100%', minHeight: '100vh', minHeight: '100dvh', background: '#f4e4c1', padding: '24px 20px', fontFamily: "'EB Garamond', serif", display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center' }}>
       
-      <div style={{ backgroundColor: '#ffffff', borderRadius: '24px', padding: '40px 32px', width: '100%', maxWidth: '420px', textAlign: 'center', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '20px', boxShadow: '0 20px 40px rgba(42,111,143,0.15)', border: '2px solid rgba(42,111,143,0.1)' }}>
+      <div style={{ backgroundColor: '#ffffff', borderRadius: '24px', padding: '40px 32px', width: '100%', maxWidth: '500px', textAlign: 'center', display: 'flex', flexDirection: 'column', alignItems: 'center', gap: '20px', boxShadow: '0 20px 40px rgba(42,111,143,0.15)', border: '2px solid rgba(42,111,143,0.1)' }}>
         
         <img src="/img/face4.png" alt="" style={{ width: '80px', marginBottom: '-10px', filter: 'drop-shadow(0 4px 8px rgba(42,111,143,0.2))' }} />
 
         <h2 style={{ fontFamily: "'Cinzel Decorative', serif", fontSize: '1.6rem', color: '#2a6f8f', margin: 0 }}>
-          Evaluasi Level
+          {action === 'REMEDIATION' ? 'Penguatan Ulang' : action === 'CONDITIONAL_PASS' ? 'Lanjut Bersyarat' : 'Lanjut Langsung'}
         </h2>
         
         <div style={{ backgroundColor: 'rgba(42,111,143,0.1)', padding: '12px 24px', borderRadius: '12px', border: '1px solid rgba(42,111,143,0.2)' }}>
           <strong style={{ fontFamily: "'Inter', sans-serif", fontSize: '1.2rem', color: '#2a6f8f', textTransform: 'uppercase', letterSpacing: '2px' }}>
-            {context.currentDifficulty}
+            Level {context.currentDifficulty}
           </strong>
         </div>
-        
-        <div style={{ fontSize: '1.1rem', color: '#3b2a1a', lineHeight: '1.6', marginBottom: '10px', padding: '16px', background: 'rgba(255,255,255,0.5)', borderRadius: '12px' }}>
-          {isLoading ? (
-            <span style={{ fontStyle: 'italic', opacity: 0.8 }}>Tutor Pintar sedang menyiapkan evaluasimu...</span>
-          ) : (
-            <TypewriterText text={aiMessage} speed={30} />
-          )}
-        </div>
+
+        {/* Adaptive UI Sections based on Table */}
+        {action === 'REMEDIATION' && (
+          <div style={{ width: '100%', textAlign: 'left', background: 'linear-gradient(135deg, #fff3e0, #ffe0b2)', padding: '20px', borderRadius: '12px', border: '1px solid #ffcc80' }}>
+            <h4 style={{ margin: '0 0 8px 0', color: '#e65100', fontFamily: "'Inter', sans-serif", fontSize: '0.9rem', textTransform: 'uppercase' }}>Kartu Konsep & Contoh Terselesaikan</h4>
+            <div style={{ fontSize: '1rem', color: '#5d4037', lineHeight: '1.5' }}>
+              {isLoading ? <span style={{ fontStyle: 'italic' }}>Menyusun kartu konsep...</span> : <TypewriterText text={aiMessage} speed={20} />}
+            </div>
+            <div style={{ marginTop: '12px', fontSize: '0.85rem', color: '#e65100', fontWeight: 'bold' }}>
+              * Selesaikan kartu konsep ini sebelum mencoba soal setara.
+            </div>
+          </div>
+        )}
+
+        {action === 'CONDITIONAL_PASS' && (
+          <div style={{ width: '100%', textAlign: 'left', background: 'linear-gradient(135deg, #e3f2fd, #bbdefb)', padding: '20px', borderRadius: '12px', border: '1px solid #90caf9' }}>
+            <h4 style={{ margin: '0 0 8px 0', color: '#1565c0', fontFamily: "'Inter', sans-serif", fontSize: '0.9rem', textTransform: 'uppercase' }}>Petunjuk Kontekstual</h4>
+            <div style={{ fontSize: '1rem', color: '#0d47a1', lineHeight: '1.5' }}>
+              {isLoading ? <span style={{ fontStyle: 'italic' }}>Menyiapkan petunjuk visual...</span> : <TypewriterText text={aiMessage} speed={20} />}
+            </div>
+          </div>
+        )}
+
+        {action === 'DIRECT_PASS' && (
+          <div style={{ width: '100%', textAlign: 'center', background: 'linear-gradient(135deg, #e8f5e9, #c8e6c9)', padding: '20px', borderRadius: '12px', border: '1px solid #a5d6a7' }}>
+            <h4 style={{ margin: '0 0 8px 0', color: '#2e7d32', fontFamily: "'Inter', sans-serif", fontSize: '0.9rem', textTransform: 'uppercase' }}>Penguasaan Sempurna</h4>
+            <div style={{ fontSize: '1rem', color: '#1b5e20', lineHeight: '1.5' }}>
+              {isLoading ? <span style={{ fontStyle: 'italic' }}>Mengevaluasi...</span> : <TypewriterText text={aiMessage} speed={20} />}
+            </div>
+          </div>
+        )}
 
         <button 
           onClick={handleProceed}
-          style={{ width: '100%', padding: '14px 24px', backgroundColor: '#2a6f8f', color: '#f4e4c1', border: '2px solid rgba(255,255,255,0.2)', borderRadius: '12px', cursor: 'pointer', fontFamily: "'Cinzel Decorative', serif", fontSize: '1.1rem', fontWeight: '700', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '10px', boxShadow: '0 4px 6px rgba(0,0,0,0.3)', transition: 'all 0.2s ease' }}
+          style={{ width: '100%', padding: '14px 24px', backgroundColor: '#2a6f8f', color: '#f4e4c1', border: '2px solid rgba(255,255,255,0.2)', borderRadius: '12px', cursor: 'pointer', fontFamily: "'Cinzel Decorative', serif", fontSize: '1.1rem', fontWeight: '700', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '10px', boxShadow: '0 4px 6px rgba(0,0,0,0.3)', transition: 'all 0.2s ease', marginTop: '10px' }}
         >
-          {context.currentDifficulty === 'Hard' ? "Lanjut ke Refleksi" : "Lanjut ke Misi Berikutnya"}
+          {action === 'REMEDIATION' ? 'Coba Soal Setara' : context.currentDifficulty === 'Hard' ? "Lanjut ke Refleksi" : "Lanjut Level Berikutnya"}
         </button>
       </div>
 

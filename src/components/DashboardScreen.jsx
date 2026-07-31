@@ -36,8 +36,7 @@ export default function DashboardScreen({ playerState }) {
 
   return (
     <div className="map-screen">
-      {/* 3D Animated Background */}
-      <SeaBackground />
+      {/* 3D Animated Background Dihapus, diganti dengan map_bg.png di CSS */}
 
       {/* Compact Stats */}
       <div className="compact-stats">
