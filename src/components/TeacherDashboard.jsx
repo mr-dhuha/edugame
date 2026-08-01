@@ -165,12 +165,21 @@ export default function TeacherDashboard() {
 
   const scoreDistributionData = useMemo(() => {
     if (!metrics || !metrics.studentsList) return [];
-    let ranges = { '0-59': 0, '60-74': 0, '75-89': 0, '90-100': 0 };
+    let ranges = {
+      '0-10': 0, '11-20': 0, '21-30': 0, '31-40': 0, '41-50': 0,
+      '51-60': 0, '61-70': 0, '71-80': 0, '81-90': 0, '91-100': 0
+    };
     metrics.studentsList.forEach(s => {
-      if (s.score < 60) ranges['0-59']++;
-      else if (s.score < 75) ranges['60-74']++;
-      else if (s.score < 90) ranges['75-89']++;
-      else ranges['90-100']++;
+      if (s.score <= 10) ranges['0-10']++;
+      else if (s.score <= 20) ranges['11-20']++;
+      else if (s.score <= 30) ranges['21-30']++;
+      else if (s.score <= 40) ranges['31-40']++;
+      else if (s.score <= 50) ranges['41-50']++;
+      else if (s.score <= 60) ranges['51-60']++;
+      else if (s.score <= 70) ranges['61-70']++;
+      else if (s.score <= 80) ranges['71-80']++;
+      else if (s.score <= 90) ranges['81-90']++;
+      else ranges['91-100']++;
     });
     return Object.keys(ranges).map(k => ({ range: k, count: ranges[k] }));
   }, [metrics]);

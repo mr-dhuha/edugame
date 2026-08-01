@@ -21,7 +21,8 @@ export async function fetchTeacherMetrics(class_code = null) {
       .from('analytics_events')
       .select('*')
       .in('student_id', studentIds)
-      .order('timestamp', { ascending: true });
+      .order('timestamp', { ascending: true })
+      .limit(50000); // Bypass default 1000 rows limit
 
     if (errE) throw new Error("Gagal mengambil data event");
 
