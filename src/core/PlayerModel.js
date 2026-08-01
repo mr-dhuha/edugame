@@ -111,10 +111,14 @@ export class PlayerModel {
       }
 
       // 2. Restore Events (Completed Episodes, Badges, XP, Question Attempts)
-      const { data: eventsData } = await supabase
+      const { data: eventsData, error: eventsError } = await supabase
         .from('analytics_events')
         .select('*')
-        .eq('student_id', studentId);
+        .or(`student_id.eq.${studentId},metadata->>student_id.eq.${studentId}`);
+
+      if (eventsError) {
+        console.error("[PlayerModel] Supabase RLS or fetch error:", eventsError);
+      }
 
       if (eventsData) {
         let maxXP = 0;
