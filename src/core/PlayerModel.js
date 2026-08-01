@@ -126,10 +126,17 @@ export class PlayerModel {
             if (ev.metadata && ev.metadata.score && ev.metadata.score > maxXP) {
               maxXP = ev.metadata.score;
             }
+          } else if (ev.event_type === 'REFLECTION_SUBMITTED' || ev.event_type === 'reflection_submitted') {
+            if (ev.episode_id) this.state.completedEpisodes.add(ev.episode_id);
           } else if (ev.event_type === 'badge_earned' && ev.metadata && ev.metadata.badge_id) {
             this.state.earnedBadges.add(ev.metadata.badge_id);
           } else if (ev.event_type === 'question_attempt') {
             const epId = ev.episode_id;
+            if (epId) {
+              for (let i = 1; i < epId; i++) {
+                this.state.completedEpisodes.add(i);
+              }
+            }
             if (!this.state.episodeStats[epId]) {
               this.state.episodeStats[epId] = {
                 correctCount: 0, totalCount: 0, hintsUsed: 0, totalTimeSec: 0, totalTimeLimitSec: 0, results: []
