@@ -3,6 +3,7 @@ import { fsm, STATES } from '../core/FSMEngine';
 import { eventBus, EVENTS } from '../core/EventBus';
 import { audioEngine } from '../core/AudioEngine';
 import questionsData from '../data/questions.json';
+import { playerModel } from '../core/PlayerModel';
 import { supabase } from '../core/SupabaseClient';
 import { shuffleOptions, evaluateQuestionOutcome } from '../core/AdaptiveEngine';
 import Explainer3D from './3d/Explainer3D';
