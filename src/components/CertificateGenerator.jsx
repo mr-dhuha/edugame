@@ -133,56 +133,90 @@ export default function CertificateGenerator({ playerState, gameRules }) {
               alignItems: 'center'
             }}
           >
-            {/* Stamp Logo Watermark / Corner */}
-            <img src="/img/logo.png" alt="Stamp" style={{ position: 'absolute', right: '60px', bottom: '60px', width: '150px', opacity: 0.9 }} />
-
-            <h1 style={{ fontSize: '48px', color: '#2e8b57', margin: '0 0 10px 0', textTransform: 'uppercase', fontFamily: "'Cinzel Decorative', serif" }}>Sertifikat Penguasaan</h1>
-            <p style={{ fontSize: '18px', color: '#555', marginBottom: '30px' }}>Diberikan kepada:</p>
-            
-            <h2 style={{ fontSize: '42px', color: '#333', margin: '0 0 20px 0', borderBottom: '2px solid #2e8b57', paddingBottom: '10px', minWidth: '400px', textAlign: 'center' }}>
-              {playerState.profile.name}
-            </h2>
-
-            <p style={{ fontSize: '16px', color: '#666', marginBottom: '30px', textAlign: 'center', maxWidth: '800px', lineHeight: '1.5' }}>
-              Telah menyelesaikan misi ChemQuest: Pesisir Meranti dengan tingkat keberhasilan (Mastery) sebesar <strong>{Math.round(playerState.mastery)}</strong>.<br/>
-              Berikut adalah pemetaan kognitif (Taksonomi Bloom) per episode yang diraih siswa:
-            </p>
-
-            {/* Radar Charts Grid */}
-            <div style={{ display: 'flex', gap: '15px', width: '100%', justifyContent: 'center', flexWrap: 'wrap', flex: 1 }}>
-              {episodeRadars.map((radar, idx) => (
-                <div key={idx} style={{ 
-                  width: '23%', 
-                  textAlign: 'center', 
-                  opacity: radar.hasData ? 1 : 0.5, 
-                  filter: radar.hasData ? 'none' : 'grayscale(100%)' 
-                }}>
-                  <h4 style={{ margin: '0 0 5px 0', color: '#333', fontSize: '16px' }}>Episode {radar.episode}</h4>
-                  <div style={{ height: '220px', width: '100%' }}>
-                    <ResponsiveContainer>
-                      <RadarChart cx="50%" cy="50%" outerRadius="70%" data={radar.data}>
-                        <PolarGrid stroke="#e2d3b3" />
-                        <PolarAngleAxis dataKey="subject" tick={{ fontSize: 11, fill: '#333' }} />
-                        <PolarRadiusAxis angle={30} domain={[0, 100]} tick={false} />
-                        <Radar name={`Ep ${radar.episode}`} dataKey="A" stroke={radar.hasData ? "#2e8b57" : "#999"} fill={radar.hasData ? "#2e8b57" : "#999"} fillOpacity={0.4} isAnimationActive={false} />
-                      </RadarChart>
-                    </ResponsiveContainer>
-                  </div>
-                  {!radar.hasData && <span style={{ fontSize: '12px', color: '#888', fontStyle: 'italic' }}>Belum diselesaikan</span>}
-                </div>
-              ))}
+            {/* Ornamen Latar Belakang (Watermark) */}
+            <div style={{
+              position: 'absolute',
+              top: '50%',
+              left: '50%',
+              transform: 'translate(-50%, -50%)',
+              opacity: 0.05,
+              pointerEvents: 'none',
+              zIndex: 0
+            }}>
+              <img src="/img/logo.png" alt="Watermark" style={{ width: '400px' }} />
             </div>
 
-            {/* Footer */}
-            <div style={{ display: 'flex', justifyContent: 'space-between', width: '100%', marginTop: 'auto', padding: '0 40px' }}>
-              <div style={{ textAlign: 'center' }}>
-                <div style={{ borderBottom: '1px solid #333', width: '200px', marginBottom: '10px' }}></div>
-                <p style={{ margin: 0, fontSize: '14px', color: '#666' }}>Pembimbing / Guru</p>
+            <div style={{ zIndex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', width: '100%', height: '100%' }}>
+              <h1 style={{ fontSize: '48px', color: '#2e8b57', margin: '0 0 10px 0', textTransform: 'uppercase', fontFamily: "'Cinzel Decorative', serif" }}>Sertifikat Penguasaan</h1>
+              <p style={{ fontSize: '18px', color: '#555', marginBottom: '30px' }}>Diberikan kepada:</p>
+              
+              <h2 style={{ fontSize: '42px', color: '#333', margin: '0 0 20px 0', borderBottom: '2px solid #2e8b57', paddingBottom: '10px', minWidth: '400px', textAlign: 'center' }}>
+                {playerState.profile.name}
+              </h2>
+              <p style={{ fontSize: '16px', color: '#666', marginBottom: '20px', textAlign: 'center', maxWidth: '800px', lineHeight: '1.5' }}>
+                Telah menyelesaikan misi ChemQuest: Pesisir Meranti dengan pencapaian <strong>Skor Kemampuan Kognitif sebesar {Math.round(playerState.mastery)}/{gameRules?.mastery?.maxValue || 100}</strong>.<br/>
+                Berikut adalah pemetaan kognitif (Taksonomi Bloom) per episode yang diraih siswa:
+              </p>
+
+              {/* Bloom's Taxonomy Legend */}
+              <div style={{ display: 'flex', gap: '15px', flexWrap: 'wrap', justifyContent: 'center', marginBottom: '30px', fontSize: '13px', color: '#555', maxWidth: '900px', background: '#f8f9fa', padding: '10px 20px', borderRadius: '8px', border: '1px solid #e2d3b3' }}>
+                <span><strong>C1:</strong> Mengingat</span>
+                <span><strong>C2:</strong> Memahami</span>
+                <span><strong>C3:</strong> Mengaplikasikan</span>
+                <span><strong>C4:</strong> Menganalisis</span>
+                <span><strong>C5:</strong> Mengevaluasi</span>
+                <span><strong>C6:</strong> Mencipta</span>
               </div>
-              <div style={{ textAlign: 'center' }}>
-                <div style={{ fontSize: '18px', fontWeight: 'bold', marginBottom: '10px' }}>{new Date().toLocaleDateString('id-ID')}</div>
-                <div style={{ borderBottom: '1px solid #333', width: '200px', marginBottom: '10px' }}></div>
-                <p style={{ margin: 0, fontSize: '14px', color: '#666' }}>Tanggal Penyerahan</p>
+
+              {/* Radar Charts Grid */}
+              <div style={{ display: 'flex', gap: '15px', width: '100%', justifyContent: 'center', flexWrap: 'wrap', flex: 1 }}>
+                {episodeRadars.map((radar, idx) => (
+                  <div key={idx} style={{ 
+                    width: '23%', 
+                    textAlign: 'center', 
+                    opacity: radar.hasData ? 1 : 0.5, 
+                    filter: radar.hasData ? 'none' : 'grayscale(100%)' 
+                  }}>
+                    <h4 style={{ margin: '0 0 5px 0', color: '#333', fontSize: '16px' }}>Episode {radar.episode}</h4>
+                    <div style={{ height: '220px', width: '100%' }}>
+                      <ResponsiveContainer>
+                        <RadarChart cx="50%" cy="50%" outerRadius="70%" data={radar.data}>
+                          <PolarGrid stroke="#e2d3b3" />
+                          <PolarAngleAxis dataKey="subject" tick={{ fontSize: 11, fill: '#333' }} />
+                          <PolarRadiusAxis angle={30} domain={[0, 100]} tick={false} />
+                          <Radar name={`Ep ${radar.episode}`} dataKey="A" stroke={radar.hasData ? "#2e8b57" : "#999"} fill={radar.hasData ? "#2e8b57" : "#999"} fillOpacity={0.4} isAnimationActive={false} />
+                        </RadarChart>
+                      </ResponsiveContainer>
+                    </div>
+                    {!radar.hasData && <span style={{ fontSize: '12px', color: '#888', fontStyle: 'italic' }}>Belum diselesaikan</span>}
+                  </div>
+                ))}
+              </div>
+
+              {/* Footer */}
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end', width: '100%', marginTop: 'auto', padding: '0 40px' }}>
+                
+                {/* Tanggal */}
+                <div style={{ textAlign: 'center', width: '250px' }}>
+                  <div style={{ fontSize: '18px', fontWeight: 'bold', marginBottom: '10px', color: '#333' }}>4 Agustus 2026</div>
+                  <div style={{ borderBottom: '2px solid #2e8b57', width: '100%', marginBottom: '10px' }}></div>
+                  <p style={{ margin: 0, fontSize: '14px', color: '#666' }}>Tanggal Penyerahan</p>
+                </div>
+
+                {/* Logo Tengah */}
+                <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', width: '200px' }}>
+                  <img src="/img/logo.png" alt="ChemQuest" style={{ width: '120px' }} />
+                </div>
+
+                {/* Tanda Tangan */}
+                <div style={{ textAlign: 'center', width: '250px', position: 'relative' }}>
+                  {/* Gambar TTD diletakkan di atas garis */}
+                  <img src="/img/signature.png" alt="Signature" style={{ height: '60px', marginBottom: '-10px', position: 'relative', zIndex: 2 }} />
+                  <div style={{ borderBottom: '2px solid #2e8b57', width: '100%', marginBottom: '10px', position: 'relative', zIndex: 1 }}></div>
+                  <p style={{ margin: '0 0 4px 0', fontSize: '16px', fontWeight: 'bold', color: '#333' }}>Siti Nazhifah, M.Pd</p>
+                  <p style={{ margin: 0, fontSize: '14px', color: '#666' }}>Chemquest Director</p>
+                </div>
+
               </div>
             </div>
 
