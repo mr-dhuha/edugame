@@ -17,14 +17,30 @@ export async function fetchTeacherMetrics(class_code = null) {
 
     const studentIds = students.map(s => s.nis);
 
-    const { data: events, error: errE } = await supabase
-      .from('analytics_events')
-      .select('*')
-      .in('student_id', studentIds)
-      .order('timestamp', { ascending: true })
-      .limit(50000); // Bypass default 1000 rows limit
-
-    if (errE) throw new Error("Gagal mengambil data event");
+    let events = [];
+    let fetchMore = true;
+    let page = 0;
+    while (fetchMore) {
+      const { data: pageData, error: errE } = await supabase
+        .from('analytics_events')
+        .select('*')
+        .in('student_id', studentIds)
+        .order('timestamp', { ascending: true })
+        .range(page * 1000, (page + 1) * 1000 - 1);
+      
+      if (errE) {
+        console.error("TeacherEngine Event Fetch Error:", errE);
+        break;
+      }
+      
+      if (pageData && pageData.length > 0) {
+        events = events.concat(pageData);
+        page++;
+        if (pageData.length < 1000) fetchMore = false; // Last page
+      } else {
+        fetchMore = false;
+      }
+    }
 
     // Initialize Metrics
     const metrics = getEmptyData();
