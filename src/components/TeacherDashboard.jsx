@@ -430,6 +430,7 @@ export default function TeacherDashboard() {
                       <th>murid</th>
                       {metrics.heatmap.length > 0 && Object.keys(metrics.heatmap[0])
                         .filter(k => k !== 'name' && k !== 'isActive')
+                        .sort((a, b) => a.localeCompare(b))
                         .map(q => (
                           <th
                             key={q}
@@ -490,6 +491,7 @@ export default function TeacherDashboard() {
                           <td className="hm-name">{row.name}</td>
                           {Object.keys(row)
                             .filter(k => k !== 'name' && k !== 'isActive')
+                            .sort((a, b) => a.localeCompare(b))
                             .map(q => (
                               <td key={q}><div className={`hm-cell ${row[q]}`}></div></td>
                             ))}

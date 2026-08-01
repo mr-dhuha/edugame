@@ -78,10 +78,12 @@ export async function fetchTeacherMetrics(class_code = null) {
       if (ev.response_time_ms) s.timeSec += ev.response_time_ms / 1000;
 
       if (ev.event_type === 'episode_completed') {
-        if (s.episodesCompleted.has(ev.episode_id)) {
-          s.replays++;
+        if (ev.episode_id) {
+          if (s.episodesCompleted.has(ev.episode_id)) {
+            s.replays++;
+          }
+          s.episodesCompleted.add(ev.episode_id);
         }
-        s.episodesCompleted.add(ev.episode_id);
       }
 
       if (ev.event_type === 'remedial_triggered') {
@@ -97,6 +99,12 @@ export async function fetchTeacherMetrics(class_code = null) {
         s.hints += h;
 
         if (ev.episode_id && ev.question_id) {
+          // Inferensi cerdas: Jika siswa menjawab soal di Episode X, 
+          // maka secara logis Episode 1 sampai (X-1) PASTI sudah diselesaikan.
+          for (let i = 1; i < ev.episode_id; i++) {
+            s.episodesCompleted.add(i);
+          }
+
           if (!s.missions[ev.episode_id]) s.missions[ev.episode_id] = [];
 
           s.missions[ev.episode_id].push({ label: `Q:${ev.question_id}`, status: ev.is_correct ? 'pass' : 'fail' });
@@ -135,6 +143,8 @@ export async function fetchTeacherMetrics(class_code = null) {
       }
 
       if (ev.event_type === 'REFLECTION_SUBMITTED' || ev.event_type === 'reflection_submitted') {
+        if (ev.episode_id) s.episodesCompleted.add(ev.episode_id);
+
         const score = ev.metadata?.score || 0;
         if (score >= 4) reflectionScores.excellent++;
         else if (score === 3) reflectionScores.good++;

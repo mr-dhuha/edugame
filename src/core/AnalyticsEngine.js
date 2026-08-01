@@ -128,6 +128,8 @@ export class AnalyticsEngine {
       event_type: 'reflection_submitted',
       episode_id: payload.episodeId,
       metadata: {
+        response_text: payload.responseText,
+        ai_feedback: payload.aiFeedback,
         response_length: payload.responseText.length,
         score: payload.score,
         matched_keywords: payload.matchedKeywords
