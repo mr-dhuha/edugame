@@ -86,6 +86,13 @@ export default function GameApp() {
         localStorage.setItem('chemquest_player', playerModel.serialize());
       }
     };
+
+    // Make sure we save when entering Dashboard (especially right after login)
+    const unsubFsmDashboard = eventBus.on(EVENTS.STATE_CHANGED, ({ state }) => {
+      if (state === STATES.DASHBOARD) {
+        localStorage.setItem('chemquest_player', playerModel.serialize());
+      }
+    });
     
     const unsubMastery = eventBus.on(EVENTS.MASTERY_UPDATED, updatePlayerState);
     const unsubXP = eventBus.on(EVENTS.XP_AWARDED, updatePlayerState);
@@ -122,6 +129,7 @@ export default function GameApp() {
 
     return () => {
       unsubFSM();
+      unsubFsmDashboard();
       unsubMastery();
       unsubXP();
       unsubBadge();

@@ -171,6 +171,7 @@ export class PlayerModel {
       }
 
       console.log("[PlayerModel] Synced state from Supabase:", this.state);
+      eventBus.emit(EVENTS.DATA_LOADED, this.state);
     } catch (err) {
       console.error("[PlayerModel] Error syncing from Supabase:", err);
     }
