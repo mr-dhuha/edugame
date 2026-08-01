@@ -199,7 +199,7 @@ export default function QuestionScreen({ context, fsmState }) {
     const isAnulir = !isCorrect && playerModel.state.correctlyAnsweredQuestions.has(question.id);
     
     // 1. Evaluate adaptive logic (4-quadrant)
-    const adaptiveOutcome = processQuestionResult({
+    const adaptiveOutcome = evaluateQuestionOutcome({
       isCorrect: isCorrect || isAnulir,
       confidence: confLevel,
       misconceptionTag: question.misconceptionTag,
