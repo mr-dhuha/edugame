@@ -20,7 +20,7 @@ export default function CertificateGenerator({ playerState, gameRules }) {
         setScale(1);
       }
     };
-    
+
     updateScale();
     window.addEventListener('resize', updateScale);
     return () => window.removeEventListener('resize', updateScale);
@@ -31,16 +31,18 @@ export default function CertificateGenerator({ playerState, gameRules }) {
     try {
       const element = certificateRef.current;
       const canvas = await html2canvas(element, {
-        scale: 2, 
+        scale: 2, // Tetap menggunakan scale 2 untuk resolusi tinggi
         backgroundColor: '#ffffff'
       });
 
-      const imgData = canvas.toDataURL('image/png');
+      // Menggunakan JPEG dengan kualitas 0.9 (90%) untuk kompresi maksimal (ukuran ~500kb - 1MB)
+      // Jauh lebih efisien daripada PNG yang bisa mencapai 10MB
+      const imgData = canvas.toDataURL('image/jpeg', 0.9);
       const pdf = new jsPDF('landscape', 'mm', 'a4');
       const pdfWidth = pdf.internal.pageSize.getWidth();
       const pdfHeight = pdf.internal.pageSize.getHeight();
 
-      pdf.addImage(imgData, 'PNG', 0, 0, pdfWidth, pdfHeight);
+      pdf.addImage(imgData, 'JPEG', 0, 0, pdfWidth, pdfHeight);
       pdf.save(`Sertifikat_ChemQuest_${playerState.profile.name}.pdf`);
 
     } catch (error) {
@@ -64,14 +66,14 @@ export default function CertificateGenerator({ playerState, gameRules }) {
       const epStats = playerState.episodeStats[i];
       const bloomCounts = { C1: { total: 0, correct: 0 }, C2: { total: 0, correct: 0 }, C3: { total: 0, correct: 0 }, C4: { total: 0, correct: 0 }, C5: { total: 0, correct: 0 }, C6: { total: 0, correct: 0 } };
       let hasData = false;
-      
+
       if (epStats && epStats.results) {
         epStats.results.forEach(res => {
           const b = bloomMap[res.questionId];
           if (b && bloomCounts[b]) {
             bloomCounts[b].total++;
             hasData = true;
-            if (res.isCorrect) bloomCounts[b].correct++; 
+            if (res.isCorrect) bloomCounts[b].correct++;
           }
         });
       }
@@ -121,7 +123,7 @@ export default function CertificateGenerator({ playerState, gameRules }) {
             style={{
               width: '1123px',
               height: '794px',
-              backgroundColor: '#fff', 
+              backgroundColor: '#fff',
               border: '10px solid #2e8b57',
               borderRadius: '8px',
               fontFamily: "'Inter', sans-serif",
@@ -147,14 +149,14 @@ export default function CertificateGenerator({ playerState, gameRules }) {
             </div>
 
             <div style={{ zIndex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', width: '100%', height: '100%' }}>
-              <h1 style={{ fontSize: '48px', color: '#2e8b57', margin: '0 0 10px 0', textTransform: 'uppercase', fontFamily: "'Cinzel Decorative', serif" }}>Sertifikat Penguasaan</h1>
+              <h1 style={{ fontSize: '48px', color: '#2e8b57', margin: '0 0 10px 0', textTransform: 'uppercase', fontFamily: "'Cinzel Decorative', serif" }}>Sertifikat Pencapaian</h1>
               <p style={{ fontSize: '18px', color: '#555', marginBottom: '30px' }}>Diberikan kepada:</p>
-              
+
               <h2 style={{ fontSize: '42px', color: '#333', margin: '0 0 20px 0', borderBottom: '2px solid #2e8b57', paddingBottom: '10px', minWidth: '400px', textAlign: 'center' }}>
                 {playerState.profile.name}
               </h2>
               <p style={{ fontSize: '16px', color: '#666', marginBottom: '20px', textAlign: 'center', maxWidth: '800px', lineHeight: '1.5' }}>
-                Telah menyelesaikan misi ChemQuest: Pesisir Meranti dengan pencapaian <strong>Skor Kemampuan Kognitif sebesar {Math.round(playerState.mastery)}/{gameRules?.mastery?.maxValue || 100}</strong>.<br/>
+                Telah menyelesaikan misi ChemQuest: Pesisir Meranti yang diselenggarakan pada <strong>4 Agustus 2026</strong> dengan pencapaian <strong>Skor Kemampuan Kognitif sebesar {Math.round(playerState.mastery)}/{gameRules?.mastery?.maxValue || 100}</strong>.<br />
                 Berikut adalah pemetaan kognitif (Taksonomi Bloom) per episode yang diraih siswa:
               </p>
 
@@ -171,11 +173,11 @@ export default function CertificateGenerator({ playerState, gameRules }) {
               {/* Radar Charts Grid */}
               <div style={{ display: 'flex', gap: '15px', width: '100%', justifyContent: 'center', flexWrap: 'wrap', flex: 1 }}>
                 {episodeRadars.map((radar, idx) => (
-                  <div key={idx} style={{ 
-                    width: '23%', 
-                    textAlign: 'center', 
-                    opacity: radar.hasData ? 1 : 0.5, 
-                    filter: radar.hasData ? 'none' : 'grayscale(100%)' 
+                  <div key={idx} style={{
+                    width: '23%',
+                    textAlign: 'center',
+                    opacity: radar.hasData ? 1 : 0.5,
+                    filter: radar.hasData ? 'none' : 'grayscale(100%)'
                   }}>
                     <h4 style={{ margin: '0 0 5px 0', color: '#333', fontSize: '16px' }}>Episode {radar.episode}</h4>
                     <div style={{ height: '220px', width: '100%' }}>
@@ -195,13 +197,9 @@ export default function CertificateGenerator({ playerState, gameRules }) {
 
               {/* Footer */}
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end', width: '100%', marginTop: 'auto', padding: '0 40px' }}>
-                
-                {/* Tanggal */}
-                <div style={{ textAlign: 'center', width: '250px' }}>
-                  <div style={{ fontSize: '18px', fontWeight: 'bold', marginBottom: '10px', color: '#333' }}>4 Agustus 2026</div>
-                  <div style={{ borderBottom: '2px solid #2e8b57', width: '100%', marginBottom: '10px' }}></div>
-                  <p style={{ margin: 0, fontSize: '14px', color: '#666' }}>Tanggal Penyerahan</p>
-                </div>
+
+                {/* Spacer Kiri (Untuk menyeimbangkan Logo di Tengah dan TTD di Kanan) */}
+                <div style={{ width: '250px' }}></div>
 
                 {/* Logo Tengah */}
                 <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', width: '200px' }}>
