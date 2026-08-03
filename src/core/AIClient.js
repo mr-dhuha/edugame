@@ -11,11 +11,11 @@ export const AIClient = {
    * @param {string} studentText - The reflection journal written by the student
    * @returns {Promise<{score: number, feedback: string}>}
    */
-  async gradeReflection(studentText, context = '') {
+  async gradeReflection(studentText, context = '', studentName = 'Siswa') {
     if (!supabase) throw new Error("Supabase is not initialized");
     
     const { data, error } = await supabase.functions.invoke('ai-tutor', {
-      body: { feature: 'grade_reflection', data: `${context ? `[Konteks: ${context}]\n` : ''}${studentText}` }
+      body: { feature: 'grade_reflection', data: `${context ? `[Konteks: ${context}]\n` : ''}[Nama Siswa: ${studentName}]\n${studentText}` }
     });
 
     if (error) throw error;
@@ -28,11 +28,11 @@ export const AIClient = {
    * @param {boolean} isFinalTurn
    * @returns {Promise<string>}
    */
-  async chatReflection(history, isFinalTurn) {
+  async chatReflection(history, isFinalTurn, studentName = 'Siswa') {
     if (!supabase) throw new Error("Supabase is not initialized");
 
     const { data, error } = await supabase.functions.invoke('ai-tutor', {
-      body: { feature: 'chat_reflection', data: { history, isFinalTurn } }
+      body: { feature: 'chat_reflection', data: { history, isFinalTurn, studentName } }
     });
 
     if (error) throw error;

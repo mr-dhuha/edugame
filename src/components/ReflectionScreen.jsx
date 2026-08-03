@@ -23,8 +23,9 @@ export default function ReflectionScreen({ context }) {
 
     setIsEvaluating(true);
     try {
+      const studentName = fsm.playerState?.profile?.name || 'Siswa';
       const difficultyContext = context.currentDifficulty ? `Tingkat Kesulitan Terakhir: ${context.currentDifficulty}` : '';
-      const evalResult = await AIClient.gradeReflection(response, difficultyContext);
+      const evalResult = await AIClient.gradeReflection(response, difficultyContext, studentName);
 
       const localEval = scoreReflection(response, reflection?.keyPoints || []);
       evalResult.matchedKeywords = localEval.matchedKeywords;
@@ -58,8 +59,9 @@ export default function ReflectionScreen({ context }) {
     setIsChatting(true);
 
     try {
+      const studentName = fsm.playerState?.profile?.name || 'Siswa';
       const isFinalTurn = chatTurns === 2;
-      const aiReply = await AIClient.chatReflection(newHistory, isFinalTurn);
+      const aiReply = await AIClient.chatReflection(newHistory, isFinalTurn, studentName);
       setChatHistory([...newHistory, { role: 'assistant', content: aiReply }]);
       setChatTurns(prev => prev + 1);
     } catch (err) {
