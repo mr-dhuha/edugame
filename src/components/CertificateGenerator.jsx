@@ -116,13 +116,15 @@ export default function CertificateGenerator({ playerState, gameRules }) {
       <p style={{ color: '#666', marginBottom: '20px' }}>Pratinjau Sertifikat</p>
 
       {/* VISIBLE CERTIFICATE TEMPLATE */}
-      <div style={{ width: '100%', display: 'flex', justifyContent: 'center', overflow: 'hidden', paddingBottom: '40px' }}>
-        <div style={{ transform: `scale(${scale})`, transformOrigin: 'top center', width: '1123px', height: '794px' }}>
+      <div style={{ width: '100%', display: 'flex', justifyContent: 'center', overflow: 'hidden', paddingBottom: '40px', height: 794 * scale + 40 }}>
+        <div style={{ transform: `scale(${scale})`, transformOrigin: 'top center', width: '1123px', height: '794px', minWidth: '1123px', flexShrink: 0 }}>
           <div
             ref={certificateRef}
             style={{
               width: '1123px',
               height: '794px',
+              minWidth: '1123px',
+              minHeight: '794px',
               backgroundColor: '#fff',
               border: '10px solid #2e8b57',
               borderRadius: '8px',
