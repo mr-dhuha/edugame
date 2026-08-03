@@ -28,6 +28,9 @@ export default function CertificateGenerator({ playerState, gameRules }) {
 
   const generatePDF = async () => {
     setIsGenerating(true);
+    // Beri waktu browser untuk re-render tanpa scale sebelum di-capture
+    await new Promise(r => setTimeout(r, 100));
+    
     try {
       const element = certificateRef.current;
       const canvas = await html2canvas(element, {
@@ -116,8 +119,8 @@ export default function CertificateGenerator({ playerState, gameRules }) {
       <p style={{ color: '#666', marginBottom: '20px' }}>Pratinjau Sertifikat</p>
 
       {/* VISIBLE CERTIFICATE TEMPLATE */}
-      <div style={{ width: '100%', display: 'flex', justifyContent: 'center', overflow: 'hidden', paddingBottom: '40px', height: 794 * scale + 40 }}>
-        <div style={{ transform: `scale(${scale})`, transformOrigin: 'top center', width: '1123px', height: '794px', minWidth: '1123px', flexShrink: 0 }}>
+      <div style={{ width: '100%', display: 'flex', justifyContent: 'center', overflow: 'hidden', paddingBottom: '40px', height: isGenerating ? 'auto' : 794 * scale + 40 }}>
+        <div style={{ transform: `scale(${isGenerating ? 1 : scale})`, transformOrigin: 'top center', width: '1123px', height: '794px', minWidth: '1123px', flexShrink: 0 }}>
           <div
             ref={certificateRef}
             style={{
@@ -134,7 +137,8 @@ export default function CertificateGenerator({ playerState, gameRules }) {
               padding: '40px',
               display: 'flex',
               flexDirection: 'column',
-              alignItems: 'center'
+              alignItems: 'center',
+              overflow: 'hidden'
             }}
           >
             {/* Ornamen Latar Belakang (Watermark Tiled) */}
