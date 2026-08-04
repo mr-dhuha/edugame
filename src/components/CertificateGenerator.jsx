@@ -230,8 +230,8 @@ export default function CertificateGenerator({ playerState, gameRules }) {
                 </div>
 
                 {/* Logo Kanan Bawah */}
-                <div style={{ display: 'flex', justifyContent: 'flex-end', alignItems: 'flex-end', width: '100px' }}>
-                  <img src="/img/Logo UNRI.png" alt="UNRI" style={{ height: '75px', marginBottom: '10px', objectFit: 'contain' }} />
+                <div style={{ display: 'flex', justifyContent: 'flex-end', alignItems: 'flex-end', width: '250px' }}>
+                  <img src="/img/Logo UNRI.png" alt="UNRI" style={{ height: '55px', marginBottom: '10px', objectFit: 'contain' }} />
                 </div>
 
               </div>

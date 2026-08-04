@@ -38,17 +38,7 @@ export default function DashboardScreen({ playerState }) {
     <div className="map-screen">
       {/* 3D Animated Background Dihapus, diganti dengan map_bg.png di CSS */}
 
-      {/* Compact Stats */}
-      <div className="compact-stats">
-        <div className="compact-stat-chip">
-          <span className="stat-label">XP</span>
-          <span className="stat-val">{playerState.xp}</span>
-        </div>
-        <div className="compact-stat-chip">
-          <span className="stat-label">Mastery</span>
-          <span className="stat-val">{Math.round(playerState.mastery)}%</span>
-        </div>
-      </div>
+      {/* Compact Stats Dihapus untuk memberikan ruang bagi logo LPPM UNRI */}
 
       {/* Progressive Map Area */}
       <div className="island-map-container" style={{ width: '100%', flex: 1, display: 'flex', justifyContent: 'center', alignItems: 'center', minHeight: 0, paddingBottom: '10px' }}>
