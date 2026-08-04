@@ -29,7 +29,7 @@ export default function DashboardScreen({ playerState }) {
 
   const isGraduated = playerState.completedEpisodes.size >= episodesData.length;
   const masteryPct = Math.max(0, Math.min(100, (playerState.mastery / gameRules.mastery.maxValue) * 100));
-  
+
   // Tentukan gambar progressive map berdasarkan jumlah episode yang diselesaikan
   const currentLevel = Math.min(playerState.completedEpisodes.size + 1, 4);
   const mapImage = `/img/episode${currentLevel}.png`;
@@ -51,14 +51,14 @@ export default function DashboardScreen({ playerState }) {
       </div>
 
       {/* Progressive Map Area */}
-      <div className="island-map-container" style={{ width: '100%', flex: 1, display: 'flex', justifyContent: 'center', alignItems: 'flex-start', padding: '10px 0 40px 0' }}>
-        
+      <div className="island-map-container" style={{ width: '100%', flex: 1, display: 'flex', justifyContent: 'center', alignItems: 'center', minHeight: 0, paddingBottom: '10px' }}>
+
         {/* Gambar Peta Utama dengan proporsi asli */}
-        <div style={{ position: 'relative', width: '100%', maxWidth: '500px' }}>
-          <img 
-            src={mapImage} 
-            alt={`Map Level ${currentLevel}`} 
-            style={{ width: '100%', height: 'auto', display: 'block', filter: 'drop-shadow(0 10px 20px rgba(0,0,0,0.2))' }} 
+        <div style={{ position: 'relative', height: '100%', maxWidth: '100%', aspectRatio: '1169/2079' }}>
+          <img
+            src={mapImage}
+            alt={`Map Level ${currentLevel}`}
+            style={{ width: '100%', height: '100%', objectFit: 'contain', display: 'block', filter: 'drop-shadow(0 10px 20px rgba(0,0,0,0.2))' }}
           />
 
           {/* Invisible Hitboxes / Buttons di atas Peta Utama */}
@@ -66,15 +66,15 @@ export default function DashboardScreen({ playerState }) {
             const node = NODES[i];
             const unlocked = isEpisodeUnlocked(ep.id, playerState, episodesData);
             const completed = playerState.completedEpisodes.has(ep.id);
-            
+
             return (
               <div
                 key={ep.id}
                 className="island-hitbox"
-                style={{ 
-                  position: 'absolute', 
-                  left: `${node.x}%`, 
-                  top: `${node.y}%`, 
+                style={{
+                  position: 'absolute',
+                  left: `${node.x}%`,
+                  top: `${node.y}%`,
                   transform: 'translate(-50%, -50%)',
                   cursor: (unlocked || completed) ? 'pointer' : 'not-allowed',
                   zIndex: 100 - i, // Semakin awal (episode 1 di bawah), z-index semakin besar agar berada di depan
@@ -89,7 +89,7 @@ export default function DashboardScreen({ playerState }) {
                 }}
                 onClick={() => (unlocked || completed) && setSelectedEp(ep)}
               >
-                <div 
+                <div
                   style={{
                     backgroundColor: (unlocked || completed) ? '#2a6f8f' : '#6b5a4a',
                     color: '#f4e4c1',
@@ -149,6 +149,14 @@ export default function DashboardScreen({ playerState }) {
           </div>
         </div>
       )}
+
+      {/* Footer Supported By */}
+      <div style={{ textAlign: 'center', padding: '10px 0 20px 0', width: '100%', position: 'relative', zIndex: 1 }}>
+        <p style={{ color: '#fff', fontSize: '0.9rem', marginBottom: '8px', textShadow: '1px 1px 2px rgba(0,0,0,0.8)', fontFamily: "'Inter', sans-serif" }}>
+          Supported by LPPM UNRI
+        </p>
+        <img src="/img/Logo UNRI.png" alt="Logo UNRI" style={{ height: '50px', objectFit: 'contain', filter: 'drop-shadow(0 2px 4px rgba(0,0,0,0.2))' }} />
+      </div>
     </div>
   );
 }

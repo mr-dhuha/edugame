@@ -222,7 +222,7 @@ export default function CertificateGenerator({ playerState, gameRules }) {
                   {/* Stempel (Wet Stamp) */}
                   <img src="/img/stamp.png" alt="Stamp" style={{ position: 'absolute', top: '-40px', left: '-20px', width: '110px', opacity: 0.85, zIndex: 3, transform: 'rotate(-15deg)' }} />
                   {/* Gambar TTD */}
-                  <img src="/img/signature.png" alt="Signature" style={{ height: '60px', marginBottom: '-10px', position: 'relative', zIndex: 2 }} />
+                  <img src="/img/signature.png" alt="Signature" style={{ height: '100px', marginBottom: '-20px', position: 'relative', zIndex: 2 }} />
                   
                   <div style={{ borderBottom: '2px solid #2e8b57', width: '100%', marginBottom: '10px', position: 'relative', zIndex: 1 }}></div>
                   <p style={{ margin: '0 0 4px 0', fontSize: '16px', fontWeight: 'bold', color: '#333' }}>Siti Nazhifah, M.Pd</p>

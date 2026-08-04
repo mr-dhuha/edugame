@@ -124,6 +124,10 @@ export default function TeacherLogin() {
 
         <div style={styles.footer}>
           &copy; 2026 ChemQuest EduGame
+          <div style={{ marginTop: '20px' }}>
+            <p style={{ margin: '0 0 8px 0', fontSize: '0.85rem', color: '#64748b', fontWeight: '500' }}>Supported by LPPM UNRI</p>
+            <img src="/img/Logo UNRI.png" alt="Logo UNRI" style={{ height: '40px', objectFit: 'contain' }} />
+          </div>
         </div>
       </div>
     </div>

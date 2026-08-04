@@ -190,6 +190,14 @@ export default function LoginScreen() {
             {!loading && <img src="/img/btn_circle_play.png" alt="" style={{ width: '24px' }} />}
           </button>
         </form>
+
+        {/* Footer Supported By */}
+        <div style={{ textAlign: 'center', marginTop: '30px' }}>
+          <p style={{ color: '#3b2a1a', fontSize: '0.9rem', marginBottom: '8px', fontWeight: '600', textShadow: '0 1px 1px rgba(255,255,255,0.8)', fontFamily: "'Inter', sans-serif" }}>
+            Supported by LPPM UNRI
+          </p>
+          <img src="/img/Logo UNRI.png" alt="Logo UNRI" style={{ height: '50px', objectFit: 'contain', filter: 'drop-shadow(0 2px 4px rgba(0,0,0,0.2))' }} />
+        </div>
       </div>
     </div>
   );
