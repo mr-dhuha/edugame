@@ -30,7 +30,7 @@ export default function CertificateGenerator({ playerState, gameRules }) {
     setIsGenerating(true);
     // Beri waktu browser untuk re-render tanpa scale sebelum di-capture
     await new Promise(r => setTimeout(r, 100));
-    
+
     try {
       const element = certificateRef.current;
       const canvas = await html2canvas(element, {
@@ -156,12 +156,12 @@ export default function CertificateGenerator({ playerState, gameRules }) {
             <div style={{ zIndex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', width: '100%', height: '100%' }}>
               <h1 style={{ fontSize: '48px', color: '#2e8b57', margin: '0 0 10px 0', textTransform: 'uppercase', fontFamily: "'Cinzel Decorative', serif" }}>Sertifikat Penguasaan</h1>
               <p style={{ fontSize: '18px', color: '#555', marginBottom: '30px' }}>Diberikan kepada:</p>
-              
+
               <h2 style={{ fontSize: '42px', color: '#333', margin: '0 0 20px 0', borderBottom: '2px solid #2e8b57', paddingBottom: '10px', minWidth: '400px', textAlign: 'center' }}>
                 {playerState.profile.name}
               </h2>
               <p style={{ fontSize: '16px', color: '#666', marginBottom: '20px', textAlign: 'center', maxWidth: '800px', lineHeight: '1.5' }}>
-                Telah menyelesaikan misi ChemQuest: Pesisir Meranti yang diselenggarakan pada <strong>4 Agustus 2026</strong> dengan pencapaian <strong>Skor Kemampuan Kognitif sebesar {Math.round(playerState.mastery)}/{gameRules?.mastery?.maxValue || 100}</strong>.<br/>
+                Telah menyelesaikan misi ChemQuest: Pesisir Meranti yang diselenggarakan pada <strong>4 Agustus 2026</strong> dengan pencapaian <strong>Skor Kemampuan Kognitif sebesar {Math.round(playerState.mastery)}/{gameRules?.mastery?.maxValue || 100}</strong>.<br />
                 Berikut adalah pemetaan kognitif (Taksonomi Bloom) per episode yang diraih siswa:
               </p>
 
@@ -185,11 +185,11 @@ export default function CertificateGenerator({ playerState, gameRules }) {
                     4: "Titrasi Sang Penyelamat"
                   };
                   return (
-                    <div key={idx} style={{ 
-                      width: '23%', 
-                      textAlign: 'center', 
-                      opacity: radar.hasData ? 1 : 0.5, 
-                      filter: radar.hasData ? 'none' : 'grayscale(100%)' 
+                    <div key={idx} style={{
+                      width: '23%',
+                      textAlign: 'center',
+                      opacity: radar.hasData ? 1 : 0.5,
+                      filter: radar.hasData ? 'none' : 'grayscale(100%)'
                     }}>
                       <h4 style={{ margin: '0 0 2px 0', color: '#2e8b57', fontSize: '15px' }}>Episode {radar.episode}</h4>
                       <div style={{ fontSize: '11px', color: '#666', marginBottom: '5px', height: '16px' }}>{episodeNames[radar.episode]}</div>
@@ -211,7 +211,7 @@ export default function CertificateGenerator({ playerState, gameRules }) {
 
               {/* Footer */}
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end', width: '100%', marginTop: 'auto', padding: '0 40px' }}>
-                
+
                 {/* Logo Kiri Bawah */}
                 <div style={{ display: 'flex', justifyContent: 'flex-start', alignItems: 'flex-end', width: '250px' }}>
                   <img src="/img/logo.png" alt="ChemQuest" style={{ width: '140px', marginBottom: '10px' }} />
@@ -220,17 +220,19 @@ export default function CertificateGenerator({ playerState, gameRules }) {
                 {/* Tanda Tangan Tengah dengan Stempel */}
                 <div style={{ textAlign: 'center', width: '250px', position: 'relative' }}>
                   {/* Stempel (Wet Stamp) */}
-                  <img src="/img/stamp.png" alt="Stamp" style={{ position: 'absolute', top: '-40px', left: '-20px', width: '110px', opacity: 0.85, zIndex: 3, transform: 'rotate(-15deg)' }} />
+                  <img src="/img/stamp.png" alt="Stamp" style={{ position: 'absolute', top: '-15px', left: '-20px', width: '110px', opacity: 0.85, zIndex: 3, transform: 'rotate(-15deg)' }} />
                   {/* Gambar TTD */}
                   <img src="/img/signature.png" alt="Signature" style={{ height: '100px', marginBottom: '-20px', position: 'relative', zIndex: 2 }} />
-                  
-                  <div style={{ borderBottom: '2px solid #2e8b57', width: '100%', marginBottom: '10px', position: 'relative', zIndex: 1 }}></div>
+
+                  <div style={{ borderBottom: '2px solid #2e8b57', width: '100%', marginBottom: '4px', position: 'relative', zIndex: 1 }}></div>
                   <p style={{ margin: '0 0 4px 0', fontSize: '16px', fontWeight: 'bold', color: '#333' }}>Siti Nazhifah, M.Pd</p>
                   <p style={{ margin: 0, fontSize: '14px', color: '#666' }}>Chemquest Director</p>
                 </div>
 
-                {/* Spacer Kanan (Untuk menyeimbangkan Logo di Kiri dan TTD di Tengah) */}
-                <div style={{ width: '250px' }}></div>
+                {/* Logo Kanan Bawah */}
+                <div style={{ display: 'flex', justifyContent: 'flex-end', alignItems: 'flex-end', width: '100px' }}>
+                  <img src="/img/Logo UNRI.png" alt="UNRI" style={{ height: '75px', marginBottom: '10px', objectFit: 'contain' }} />
+                </div>
 
               </div>
             </div>
